@@ -2,6 +2,11 @@
 
 遵循 [Semantic Versioning](https://semver.org/)；每个标题对应一个 Git tag `v<version>`。
 
+## [0.1.14] - 2026-11-07
+
+### Changed
+- 「文件」入口的 input 显式声明 `accept="*/*"`（语义上等同“任意文件”），用于让部分 WebView 区分“任意文件”与“媒体”选择器。
+
 ## [0.1.13] - 2026-11-07
 
 ### Changed

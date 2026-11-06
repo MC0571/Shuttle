@@ -42,7 +42,7 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
     ? `<label class="picker">
         ${fileIcon}
         <span class="picker-title">文件</span>
-        <input class="picker-input" id="files" type="file" multiple>
+        <input class="picker-input" id="files" type="file" accept="*/*" multiple>
       </label>`
     : `<label class="picker">
         ${photoIcon}
@@ -52,7 +52,7 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
       <label class="picker">
         ${fileIcon}
         <span class="picker-title">文件</span>
-        <input class="picker-input" id="files" type="file" multiple>
+        <input class="picker-input" id="files" type="file" accept="*/*" multiple>
       </label>`
   const pickerGridClass = wechat ? 'pickers pickers-single' : 'pickers pickers-double'
   const pickerNote = wechat
