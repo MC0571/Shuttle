@@ -125,7 +125,12 @@ try {
   )
 
   const resumeHtml = await (await fetch(lanBase)).text()
-  check('phone page has resume banner', resumeHtml.includes('id="resume-error"') && resumeHtml.includes('/resume'))
+  check('phone page has no retry banner', !resumeHtml.includes('resume-error'))
+  check(
+    'header puts host beside product name',
+    resumeHtml.includes('class="head-meta"') && resumeHtml.includes('class="host-name"'),
+  )
+  check('header drops save-dir subtitle', !resumeHtml.includes('发送到') && !resumeHtml.includes('FilesRemote'))
 
   await fetch(`${lanBase}/event`, {
     method: 'POST',

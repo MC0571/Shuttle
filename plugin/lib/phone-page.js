@@ -74,40 +74,30 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
   html, body { margin: 0; padding: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Segoe UI", system-ui, sans-serif;
-    background: #f2f4f8; color: #0f172a; line-height: 1.5;
+    background: #f2f4f8; color: #0f172a; line-height: 1.5; -webkit-text-size-adjust: 100%;
     min-height: 100vh; padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
   }
-  @media (prefers-color-scheme: dark) {
-    body { background: #0b1220; color: #e6edf7; }
-    .card, .tips { background: #111a2b; border-color: #1f2b3f; }
-    .picker { background: #0e1626; border-color: #26344b; }
-    .picker:active { background: #182238; }
-    .muted { color: #8b9ab1; }
-    select { background: #0e1626; color: #e6edf7; border-color: #26344b; }
-    .queue-item { background: #0e1626; border-color: #26344b; }
-    .bar { background: #1d2940; }
-    .foot { color: #66768f; }
-    .notice { background: #102a1c; border-color: #1f6b45; color: #a7e3c0; }
-    .notice.wx-notice { background: #10233a; border-color: #2b5f96; color: #a8cdf0; }
-    .notice.error { background: #3a1414; border-color: #8f2b2b; color: #f2b8b8; }
-  }
   .app { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
-  .head { display: flex; align-items: center; gap: 12px; padding: 4px 2px 2px; }
-  .logo { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
+
+  .head { display: flex; align-items: center; gap: 10px; padding: 4px 2px 2px; min-width: 0; }
+  .logo { flex: none; width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
     background: linear-gradient(135deg, #2563eb, #60a5fa); color: #fff; font-size: 20px; font-weight: 700; }
-  .head-text h1 { font-size: 19px; margin: 0; letter-spacing: 0.01em; }
-  .head-text p { margin: 2px 0 0; font-size: 12.5px; color: #64748b; }
-  @media (prefers-color-scheme: dark) { .head-text p { color: #8b9ab1; } }
-  .dot { margin-left: auto; width: 9px; height: 9px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,.14); }
+  .head-text { flex: 0 0 auto; }
+  .head-text h1 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: .01em; white-space: nowrap; }
+  .head-meta { margin-left: auto; display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; flex: 1 1 auto; }
+  .host-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: #64748b; }
+  .dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,.14); }
   .dot.off { background: #f59e0b; box-shadow: 0 0 0 4px rgba(245,158,11,.14); }
+
   .notice { background: #eef4ff; border: 1px solid #c3d6f5; color: #1e3a66; border-radius: 12px; padding: 11px 14px; font-size: 12.5px; display: flex; flex-direction: column; gap: 4px; }
   .notice b { font-size: 13px; }
-  .notice-btn { appearance: none; align-self: flex-start; margin-top: 4px; border: 1px solid currentColor; background: transparent; color: inherit; border-radius: 8px; padding: 6px 12px; font-size: 12.5px; font-family: inherit; cursor: pointer; }
   .notice.error { background: #fde9e9; border-color: #f0a8a8; color: #9b1c1c; }
+
   .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; }
   .row-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  h2 { font-size: 14px; margin: 0; font-weight: 650; letter-spacing: 0.01em; }
+  h2 { font-size: 14px; margin: 0; font-weight: 650; letter-spacing: .01em; }
   .badge { font-size: 11px; color: #2563eb; background: rgba(37,99,235,.1); border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+
   .pickers { display: grid; gap: 10px; margin-top: 14px; }
   .pickers-double { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pickers-single { grid-template-columns: minmax(0, 1fr); }
@@ -120,51 +110,66 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
   .picker-icon { width: 25px; height: 25px; display: block; }
   .picker-title { font-size: 15px; font-weight: 650; color: #0f172a; letter-spacing: .01em; }
   .picker-note { margin: 10px 0 0; font-size: 12px; line-height: 1.55; color: #5b6b80; }
-  @media (prefers-color-scheme: dark) {
-    .picker { background: #141f33; border-color: #2b3b56; }
-    .picker:active { background: #1b2942; }
-    .picker-icon-wrap { background: rgba(96, 165, 250, .16); color: #8bbcff; }
-    .picker-title { color: #f3f7fd; }
-    .picker-note { color: #a5b5cb; }
-  }
+
   .target { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
   .target label { font-size: 12.5px; color: #64748b; white-space: nowrap; }
   select { flex: 1; min-width: 0; font-size: 13px; padding: 9px 10px; border-radius: 10px; border: 1px solid #d5deea; background: #fff; color: inherit; }
+
   .queue { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; max-height: 52vh; overflow: auto; }
   .queue-item { background: #f8fafc; border: 1px solid #e5eaf2; border-radius: 12px; padding: 10px 12px; }
   .queue-top { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; }
   .queue-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .muted { color: #7b8899; font-size: 12px; }
-  .bar { height: 5px; border-radius: 999px; background: #e2e8f0; margin-top: 8px; overflow: hidden; }
-  .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #2563eb, #60a5fa); border-radius: 999px; transition: width .18s ease; }
   .queue-state { margin-top: 6px; font-size: 11.5px; color: #64748b; word-break: break-all; }
   .queue-state.ok { color: #16a34a; }
   .queue-state.bad { color: #dc2626; }
+  .bar { height: 5px; border-radius: 999px; background: #e2e8f0; margin-top: 8px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #2563eb, #60a5fa); border-radius: 999px; transition: width .18s ease; }
   .bar.bad i { background: #dc2626; }
+  .muted { color: #7b8899; font-size: 12px; }
+
   .tips { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px 16px; font-size: 12.5px; }
   .tips summary { cursor: pointer; color: #475569; font-weight: 600; }
   .tips ul { margin: 8px 0 0; padding-left: 18px; color: #64748b; display: flex; flex-direction: column; gap: 5px; }
   .foot { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 4px; }
+
+  /* 深色主题放在最后：确保覆盖前面的浅色规则（此前顺序错误导致深色下卡片/提示仍是浅色） */
+  @media (prefers-color-scheme: dark) {
+    body { background: #0b1220; color: #e6edf7; }
+    .host-name { color: #93a6bf; }
+    .notice { background: #10233a; border-color: #2b5f96; color: #a8cdf0; }
+    .notice.error { background: #3a1414; border-color: #8f2b2b; color: #f2b8b8; }
+    .card, .tips { background: #111a2b; border-color: #1f2b3f; }
+    .badge { color: #8bbcff; background: rgba(96,165,250,.14); }
+    .picker { background: #141f33; border-color: #2b3b56; }
+    .picker:active { background: #1b2942; border-color: #3a5170; }
+    .picker-icon-wrap { background: rgba(96,165,250,.16); color: #8bbcff; }
+    .picker-title { color: #f3f7fd; }
+    .picker-note { color: #a5b5cb; }
+    .target label { color: #93a6bf; }
+    select { background: #0e1626; color: #e6edf7; border-color: #26344b; }
+    .queue-item { background: #0e1626; border-color: #26344b; }
+    .queue-state { color: #93a6bf; }
+    .bar { background: #1d2940; }
+    .muted { color: #8b9ab1; }
+    .tips summary { color: #c3d2e6; }
+    .tips ul { color: #93a6bf; }
+    .foot { color: #66768f; }
+  }
 </style>
 </head>
 <body>
 <main class="app">
   <header class="head">
     <div class="logo" aria-hidden="true">⇪</div>
-    <div class="head-text">
-      <h1>文件穿梭机</h1>
-      <p>发送到「${safeDir}」 · ${safeHost}</p>
+    <div class="head-text"><h1>文件穿梭机</h1></div>
+    <div class="head-meta">
+      <span class="host-name" title="${safeHost}">${safeHost}</span>
+      <span class="dot" id="status-dot" title="连接正常"></span>
     </div>
-    <span class="dot" id="status-dot" title="连接正常"></span>
   </header>
 
   <div class="notice error" id="script-error" hidden></div>
   <div class="notice error" id="pick-error" hidden></div>
-  <div class="notice error" id="resume-error" hidden>
-    <b>上次选择没有送达</b>
-    <span>微信在系统选择器打开时回收了后台网页，已选文件还没交给页面就丢失了（系统行为）。请重试；多次失败建议改用手机系统相机扫码，或在浏览器中打开本页。</span>
-    <button type="button" class="notice-btn" id="resume-retry">重试</button>
-  </div>
 
   <section class="card">
     <div class="row-between">
@@ -219,9 +224,7 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
     summary: document.getElementById('summary'),
     status: document.getElementById('status-dot'),
     scriptError: document.getElementById('script-error'),
-    pickError: document.getElementById('pick-error'),
-    resumeError: document.getElementById('resume-error'),
-    resumeRetry: document.getElementById('resume-retry')
+    pickError: document.getElementById('pick-error')
   };
   var pending = [];
   var running = false;
@@ -464,36 +467,6 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
     });
   }
 
-  function loadResume() {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', BASE + '/resume', true);
-    xhr.onload = function () {
-      var data = null;
-      try { data = JSON.parse(xhr.responseText); } catch (error) { data = null; }
-      if (!data || !data.ok || !data.pickerAborted) return;
-      if (els.resumeError) els.resumeError.hidden = false;
-      sendEvent('resumeNotice', { waitedMs: Number(data.pickerAborted.waitedMs) || 0 });
-    };
-    try { xhr.send(); } catch (error) { /* 恢复提示失败不影响使用 */ }
-  }
-
-  function bindResumeRetry() {
-    if (!els.resumeRetry) return;
-    els.resumeRetry.addEventListener('click', function () {
-      sendEvent('retry', { source: IS_WECHAT ? 'files' : 'photos' });
-      if (els.resumeError) els.resumeError.hidden = true;
-      try {
-        if (IS_WECHAT) {
-          els.files.click();
-        } else {
-          els.photos.click();
-        }
-      } catch (error) {
-        showPickError('无法再次打开选择器，请返回微信重新扫码。');
-      }
-    });
-  }
-
   function loadTargets() {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', BASE + '/dirs', true);
@@ -533,9 +506,7 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
     initDiagnostics();
     bindInput(els.photos, '照片');
     bindInput(els.files, '文件');
-    bindResumeRetry();
     hidePickError();
-    loadResume();
     loadTargets();
     ping();
     setInterval(ping, 15000);
