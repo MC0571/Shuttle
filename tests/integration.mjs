@@ -98,9 +98,11 @@ try {
   check('wechat page explains browser/camera', wechatText.includes('picker-note') && wechatText.includes('在浏览器中打开'))
   check('entries have no subtitle text', !wechatText.includes('picker-desc') && !pageText.includes('picker-desc'))
   check('picker tiles are labels (click forwards to input)', (wechatText.match(/<label class="picker"/g) || []).length === 1)
+  check('picker inputs overlay the tiles', wechatText.includes('class="picker-input"') && wechatText.includes('id="files"'))
+  check('phone page pinned to light theme', !wechatText.includes('prefers-color-scheme') && wechatText.includes('color-scheme: light'))
   check(
     'normal page shows photo and file entries',
-    pageText.includes('accept="image/*,video/*"') && pageText.includes('for="files"') && !pageText.includes('id="compat"'),
+    pageText.includes('accept="image/*,video/*"') && pageText.includes('id="files"') && pageText.includes('id="photos"') && !pageText.includes('id="compat"'),
   )
   check('wechat top notice replaced by inline note', !wechatText.includes('你正在微信内置浏览器中打开'))
 

@@ -39,20 +39,20 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
           </svg>
         </span>`
   const pickers = wechat
-    ? `<label class="picker" for="files">
+    ? `<label class="picker">
         ${fileIcon}
         <span class="picker-title">文件</span>
-        <input id="files" type="file" multiple hidden>
+        <input class="picker-input" id="files" type="file" multiple>
       </label>`
-    : `<label class="picker" for="photos">
+    : `<label class="picker">
         ${photoIcon}
         <span class="picker-title">照片</span>
-        <input id="photos" type="file" accept="image/*,video/*" multiple hidden>
+        <input class="picker-input" id="photos" type="file" accept="image/*,video/*" multiple>
       </label>
-      <label class="picker" for="files">
+      <label class="picker">
         ${fileIcon}
         <span class="picker-title">文件</span>
-        <input id="files" type="file" multiple hidden>
+        <input class="picker-input" id="files" type="file" multiple>
       </label>`
   const pickerGridClass = wechat ? 'pickers pickers-single' : 'pickers pickers-double'
   const pickerNote = wechat
@@ -63,12 +63,12 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b1220">
-<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f2f4f8">
+<meta name="color-scheme" content="light">
 <meta name="referrer" content="no-referrer">
 <title>文件穿梭机</title>
 <style>
-  :root { color-scheme: light dark; }
+  :root { color-scheme: light; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   [hidden] { display: none !important; }
   html, body { margin: 0; padding: 0; }
@@ -101,9 +101,10 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
   .pickers { display: grid; gap: 10px; margin-top: 14px; }
   .pickers-double { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pickers-single { grid-template-columns: minmax(0, 1fr); }
-  .picker { display: flex; flex-direction: column; align-items: center; justify-content: center;
+  .picker { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 18px 10px 16px; min-height: 116px; border: 1px solid #d3dce8; border-radius: 16px;
     background: #ffffff; cursor: pointer; }
+  .picker-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; font-size: 0; cursor: pointer; z-index: 2; }
   .picker:active { background: #eef3fa; border-color: #b9c8db; }
   .picker-icon-wrap { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center;
     background: rgba(37, 99, 235, .10); color: #2563eb; margin-bottom: 10px; }
@@ -132,29 +133,6 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
   .tips ul { margin: 8px 0 0; padding-left: 18px; color: #64748b; display: flex; flex-direction: column; gap: 5px; }
   .foot { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 4px; }
 
-  /* 深色主题放在最后：确保覆盖前面的浅色规则（此前顺序错误导致深色下卡片/提示仍是浅色） */
-  @media (prefers-color-scheme: dark) {
-    body { background: #0b1220; color: #e6edf7; }
-    .host-name { color: #93a6bf; }
-    .notice { background: #10233a; border-color: #2b5f96; color: #a8cdf0; }
-    .notice.error { background: #3a1414; border-color: #8f2b2b; color: #f2b8b8; }
-    .card, .tips { background: #111a2b; border-color: #1f2b3f; }
-    .badge { color: #8bbcff; background: rgba(96,165,250,.14); }
-    .picker { background: #141f33; border-color: #2b3b56; }
-    .picker:active { background: #1b2942; border-color: #3a5170; }
-    .picker-icon-wrap { background: rgba(96,165,250,.16); color: #8bbcff; }
-    .picker-title { color: #f3f7fd; }
-    .picker-note { color: #a5b5cb; }
-    .target label { color: #93a6bf; }
-    select { background: #0e1626; color: #e6edf7; border-color: #26344b; }
-    .queue-item { background: #0e1626; border-color: #26344b; }
-    .queue-state { color: #93a6bf; }
-    .bar { background: #1d2940; }
-    .muted { color: #8b9ab1; }
-    .tips summary { color: #c3d2e6; }
-    .tips ul { color: #93a6bf; }
-    .foot { color: #66768f; }
-  }
 </style>
 </head>
 <body>

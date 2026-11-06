@@ -2,6 +2,12 @@
 
 遵循 [Semantic Versioning](https://semver.org/)；每个标题对应一个 Git tag `v<version>`。
 
+## [0.1.13] - 2026-11-07
+
+### Changed
+- 手机页固定为浅色主题（不再跟随 `prefers-color-scheme`），避免浏览器/微信主题设置不同造成观感不一致。
+- 入口改为透明覆盖的原生 file input：点击落在哪个入口就打开哪个 input，避免 label 转发在部分 WebView 中把「文件」打开成「照片」的媒体选择器。
+
 ## [0.1.12] - 2026-11-07
 
 ### Fixed
