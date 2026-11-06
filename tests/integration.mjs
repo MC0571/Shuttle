@@ -87,18 +87,22 @@ try {
     },
   })
   const wechatText = await wechatPage.text()
-  check('wechat browser notice rendered', wechatPage.ok && wechatText.includes('你正在微信内置浏览器中打开'))
+  check('wechat page is served', wechatPage.ok)
   const scriptBody = (wechatText.split('<script>')[1] || '').split('</script>')[0]
   check('phone page script is ES5', !/\basync\b|\bawait\b|=>|\bconst\b|\blet\b/.test(scriptBody))
 
   check(
-    'wechat page keeps a real photo picker',
-    wechatText.includes('accept="image/*,video/*"') && !wechatText.includes('capture='),
+    'wechat page shows only the file entry',
+    wechatText.includes('id="files"') && !wechatText.includes('id="photos"') && !wechatText.includes('id="compat"'),
   )
-  check('camera entry merged into photos', !wechatText.includes('id="camera"'))
-  check('picker tiles are labels (click forwards to input)', (wechatText.match(/<label class="picker"/g) || []).length === 3)
-  check('compat picker keeps no accept (system picker)', wechatText.includes('id="compat"') && wechatText.includes('for="compat"'))
-  check('normal page keeps a real photo picker', pageText.includes('accept="image/*,video/*"') && !pageText.includes('capture='))
+  check('wechat page explains browser/camera', wechatText.includes('picker-note') && wechatText.includes('在浏览器中打开'))
+  check('entries have no subtitle text', !wechatText.includes('picker-desc') && !pageText.includes('picker-desc'))
+  check('picker tiles are labels (click forwards to input)', (wechatText.match(/<label class="picker"/g) || []).length === 1)
+  check(
+    'normal page shows photo and file entries',
+    pageText.includes('accept="image/*,video/*"') && pageText.includes('for="files"') && !pageText.includes('id="compat"'),
+  )
+  check('wechat top notice replaced by inline note', !wechatText.includes('你正在微信内置浏览器中打开'))
 
   const stateAfterVisit = await (await fetch(`${adminBase}/shuttle/api/state`)).json()
   check('last visit recorded with wechat flag', Boolean(stateAfterVisit.lastVisit) && stateAfterVisit.lastVisit.wechat === true)

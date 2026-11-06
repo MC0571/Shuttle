@@ -25,36 +25,46 @@ function jsonForScript(value) {
 export function renderPhonePage({ token, hostName, saveDirName, wechat = false }) {
   const safeHost = escapeHtml(hostName)
   const safeDir = escapeHtml(saveDirName)
-  const wechatNotice = wechat
-    ? `<div class="notice wx-notice">
-        <b>你正在微信内置浏览器中打开</b>
-        <span>微信可能拦截局域网地址，表现为页面打不开或按钮没反应。请点右上角「…」→「在浏览器打开」，或改用手机系统相机重新扫码。</span>
-      </div>`
-    : ''
-  const pickers = `<label class="picker" for="photos">
-        <span class="picker-icon" aria-hidden="true">🖼️</span>
-        <span class="picker-title">照片</span>
-        <span class="picker-desc">相册 / 拍照</span>
-        <input id="photos" type="file" accept="image/*,video/*" multiple hidden>
-      </label>
-      <label class="picker" for="compat">
-        <span class="picker-icon" aria-hidden="true">🗂️</span>
-        <span class="picker-title">兼容选择</span>
-        <span class="picker-desc">系统选择器 · 更稳</span>
-        <input id="compat" type="file" multiple hidden>
-      </label>
-      <label class="picker" for="files">
-        <span class="picker-icon" aria-hidden="true">📄</span>
+  const photoIcon = `<span class="picker-icon-wrap" aria-hidden="true">
+          <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3.2" y="4.8" width="17.6" height="14.4" rx="2.6"/>
+            <circle cx="8.6" cy="9.6" r="1.4" fill="currentColor" stroke="none"/>
+            <path d="M4.6 16.9l4.1-4.1a1.7 1.7 0 0 1 2.4 0l3 3 1.5-1.5a1.7 1.7 0 0 1 2.4 0l2.4 2.4"/>
+          </svg>
+        </span>`
+  const fileIcon = `<span class="picker-icon-wrap" aria-hidden="true">
+          <svg class="picker-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6.4 3.6h6.9l4.9 4.9v11a1.6 1.6 0 0 1-1.6 1.6H6.4a1.6 1.6 0 0 1-1.6-1.6V5.2a1.6 1.6 0 0 1 1.6-1.6z"/>
+            <path d="M13.3 3.6v5.2h5.2"/>
+          </svg>
+        </span>`
+  const pickers = wechat
+    ? `<label class="picker" for="files">
+        ${fileIcon}
         <span class="picker-title">文件</span>
-        <span class="picker-desc">任意类型</span>
         <input id="files" type="file" multiple hidden>
       </label>`
+    : `<label class="picker" for="photos">
+        ${photoIcon}
+        <span class="picker-title">照片</span>
+        <input id="photos" type="file" accept="image/*,video/*" multiple hidden>
+      </label>
+      <label class="picker" for="files">
+        ${fileIcon}
+        <span class="picker-title">文件</span>
+        <input id="files" type="file" multiple hidden>
+      </label>`
+  const pickerGridClass = wechat ? 'pickers pickers-single' : 'pickers pickers-double'
+  const pickerNote = wechat
+    ? '<p class="picker-note">微信内传送照片请从「文件」入口进入系统选择器的「图片」分类；想要更顺手的体验，建议用手机系统相机扫码，或点右上角「…」→「在浏览器中打开」。</p>'
+    : ''
   return `<!doctype html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b1220">
+<meta name="color-scheme" content="light dark">
 <meta name="referrer" content="no-referrer">
 <title>文件穿梭机</title>
 <style>
@@ -98,15 +108,25 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
   .row-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   h2 { font-size: 14px; margin: 0; font-weight: 650; letter-spacing: 0.01em; }
   .badge { font-size: 11px; color: #2563eb; background: rgba(37,99,235,.1); border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
-  .pickers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
-  .picker { display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center;
-    padding: 14px 6px 12px; border: 1px dashed #c7d2e1; border-radius: 14px; background: #f8fafc; cursor: pointer; }
-  .picker:active { background: #eef2f8; }
-  .picker-icon { font-size: 22px; line-height: 1.1; }
-  .picker-title { font-size: 13px; font-weight: 650; }
-  .picker-desc { font-size: 10.5px; color: #7b8899; }
-  .picker-note { margin: 10px 0 0; font-size: 11.5px; color: #7b8899; }
-  @media (prefers-color-scheme: dark) { .picker-note { color: #8b9ab1; } }
+  .pickers { display: grid; gap: 10px; margin-top: 14px; }
+  .pickers-double { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pickers-single { grid-template-columns: minmax(0, 1fr); }
+  .picker { display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 18px 10px 16px; min-height: 116px; border: 1px solid #d3dce8; border-radius: 16px;
+    background: #ffffff; cursor: pointer; }
+  .picker:active { background: #eef3fa; border-color: #b9c8db; }
+  .picker-icon-wrap { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center;
+    background: rgba(37, 99, 235, .10); color: #2563eb; margin-bottom: 10px; }
+  .picker-icon { width: 25px; height: 25px; display: block; }
+  .picker-title { font-size: 15px; font-weight: 650; color: #0f172a; letter-spacing: .01em; }
+  .picker-note { margin: 10px 0 0; font-size: 12px; line-height: 1.55; color: #5b6b80; }
+  @media (prefers-color-scheme: dark) {
+    .picker { background: #141f33; border-color: #2b3b56; }
+    .picker:active { background: #1b2942; }
+    .picker-icon-wrap { background: rgba(96, 165, 250, .16); color: #8bbcff; }
+    .picker-title { color: #f3f7fd; }
+    .picker-note { color: #a5b5cb; }
+  }
   .target { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
   .target label { font-size: 12.5px; color: #64748b; white-space: nowrap; }
   select { flex: 1; min-width: 0; font-size: 13px; padding: 9px 10px; border-radius: 10px; border: 1px solid #d5deea; background: #fff; color: inherit; }
@@ -138,13 +158,12 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
     <span class="dot" id="status-dot" title="连接正常"></span>
   </header>
 
-  ${wechatNotice}
   <div class="notice error" id="script-error" hidden></div>
   <div class="notice error" id="pick-error" hidden></div>
   <div class="notice error" id="resume-error" hidden>
-    <b>上次选图没有送达</b>
-    <span>微信在相册选择器打开时回收了后台网页，照片还没交给页面就丢失了（系统行为）。建议改用「兼容选择」重试；多次失败可改用手机系统相机扫码。</span>
-    <button type="button" class="notice-btn" id="resume-retry">用兼容选择重试</button>
+    <b>上次选择没有送达</b>
+    <span>微信在系统选择器打开时回收了后台网页，已选文件还没交给页面就丢失了（系统行为）。请重试；多次失败建议改用手机系统相机扫码，或在浏览器中打开本页。</span>
+    <button type="button" class="notice-btn" id="resume-retry">重试</button>
   </div>
 
   <section class="card">
@@ -152,10 +171,10 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
       <h2>选择要发送的内容</h2>
       <span class="badge">仅限局域网</span>
     </div>
-    <div class="pickers">
+    <div class="${pickerGridClass}">
       ${pickers}
     </div>
-    <p class="picker-note">微信内如果「照片」选完页面被重置，请改用「兼容选择」（系统选择器，更稳）。</p>
+    ${pickerNote}
     <div class="target">
       <label for="dir">保存到</label>
       <select id="dir"><option value="">/（根目录）</option></select>
@@ -189,6 +208,7 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
 (function () {
   'use strict';
   var TOKEN = ${jsonForScript(token)};
+  var IS_WECHAT = ${wechat ? 'true' : 'false'};
   var BASE = '/s/' + encodeURIComponent(TOKEN);
   var els = {
     photos: document.getElementById('photos'),
@@ -200,7 +220,6 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
     status: document.getElementById('status-dot'),
     scriptError: document.getElementById('script-error'),
     pickError: document.getElementById('pick-error'),
-    compat: document.getElementById('compat'),
     resumeError: document.getElementById('resume-error'),
     resumeRetry: document.getElementById('resume-retry')
   };
@@ -385,7 +404,7 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
     var title = document.createElement('b');
     title.textContent = '照片 / 文件没有交到网页';
     var hint = document.createElement('span');
-    hint.textContent = message || '选择器已关闭但没有返回文件。请重试，或改用「兼容选择」，也可以改用手机系统相机扫码。';
+    hint.textContent = message || '选择器已关闭但没有返回文件。请重试，或改用手机系统相机扫码，也可以在浏览器中打开本页。';
     els.pickError.appendChild(title);
     els.pickError.appendChild(hint);
   }
@@ -461,10 +480,14 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
   function bindResumeRetry() {
     if (!els.resumeRetry) return;
     els.resumeRetry.addEventListener('click', function () {
-      sendEvent('retry', { source: 'compat' });
+      sendEvent('retry', { source: IS_WECHAT ? 'files' : 'photos' });
       if (els.resumeError) els.resumeError.hidden = true;
       try {
-        els.compat.click();
+        if (IS_WECHAT) {
+          els.files.click();
+        } else {
+          els.photos.click();
+        }
       } catch (error) {
         showPickError('无法再次打开选择器，请返回微信重新扫码。');
       }
@@ -509,7 +532,6 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
   try {
     initDiagnostics();
     bindInput(els.photos, '照片');
-    bindInput(els.compat, '兼容选择');
     bindInput(els.files, '文件');
     bindResumeRetry();
     hidePickError();
