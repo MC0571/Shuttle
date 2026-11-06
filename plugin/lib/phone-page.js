@@ -131,6 +131,7 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
 
   ${wechatNotice}
   <div class="notice error" id="script-error" hidden></div>
+  <div class="notice error" id="pick-error" hidden></div>
 
   <section class="card">
     <div class="row-between">
@@ -182,12 +183,43 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
     queueCard: document.getElementById('queue-card'),
     summary: document.getElementById('summary'),
     status: document.getElementById('status-dot'),
-    scriptError: document.getElementById('script-error')
+    scriptError: document.getElementById('script-error'),
+    pickError: document.getElementById('pick-error')
   };
   var pending = [];
   var running = false;
   var okCount = 0;
   var badCount = 0;
+  var loadInfo = { reloads: 1, pickedBeforeReload: false };
+
+  function sendEvent(type, detail) {
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', BASE + '/event', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify({
+        type: type,
+        detail: detail || {},
+        reloads: loadInfo.reloads,
+        pickedBeforeReload: loadInfo.pickedBeforeReload
+      }));
+    } catch (error) {
+      // 诊断上报失败不影响上传。
+    }
+  }
+
+  function initDiagnostics() {
+    try {
+      var loads = Number(sessionStorage.getItem('shuttle.loads') || '0') + 1;
+      sessionStorage.setItem('shuttle.loads', String(loads));
+      loadInfo.reloads = loads;
+      loadInfo.pickedBeforeReload = sessionStorage.getItem('shuttle.pickOpened') === '1';
+      sessionStorage.removeItem('shuttle.pickOpened');
+    } catch (error) {
+      // sessionStorage 不可用时只上报默认值。
+    }
+    sendEvent('page', { reloads: loadInfo.reloads, pickedBeforeReload: loadInfo.pickedBeforeReload });
+  }
 
   function showScriptError(detail) {
     if (!els.scriptError) return;
@@ -307,17 +339,20 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
         badCount += 1;
       }
       updateSummary();
+      if (typeof task.onItemDone === 'function') {
+        try { task.onItemDone(); } catch (error) { /* 忽略 */ }
+      }
       pump();
     });
   }
 
-  function enqueue(fileList) {
+  function enqueue(fileList, onItemDone) {
     if (!fileList || fileList.length === 0) return;
     var targetDir = els.dir.value || '';
     els.queueCard.hidden = false;
     for (var index = 0; index < fileList.length; index += 1) {
       var file = fileList[index];
-      pending.push({ file: file, dir: targetDir, row: addRow(file.name, file.size) });
+      pending.push({ file: file, dir: targetDir, row: addRow(file.name, file.size), onItemDone: onItemDone });
     }
     if (!running) {
       running = true;
@@ -325,11 +360,70 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
     }
   }
 
-  function bindInput(element) {
-    element.addEventListener('change', function () {
-      var selected = this.files ? Array.prototype.slice.call(this.files) : [];
-      if (selected.length > 0) enqueue(selected);
-      this.value = '';
+  function showPickError(message) {
+    if (!els.pickError) return;
+    els.pickError.hidden = false;
+    els.pickError.innerHTML = '';
+    var title = document.createElement('b');
+    title.textContent = '照片 / 文件没有交到网页';
+    var hint = document.createElement('span');
+    hint.textContent = message || '选择器已关闭但没有返回文件。请重试一次，或改用手机系统相机扫码。';
+    els.pickError.appendChild(title);
+    els.pickError.appendChild(hint);
+  }
+
+  function hidePickError() {
+    if (els.pickError) els.pickError.hidden = true;
+  }
+
+  function bindInput(input, label) {
+    if (!input) return;
+    var lastHandledAt = 0;
+
+    function handle(source) {
+      var files = input.files ? Array.prototype.slice.call(input.files) : [];
+      if (!files.length) {
+        sendEvent('empty', { source: source, label: label });
+        showPickError('选择器返回了 0 个文件（' + (label || '文件') + '）。');
+        try { input.value = ''; } catch (error) { /* 忽略 */ }
+        return;
+      }
+      try { sessionStorage.removeItem('shuttle.pickOpened'); } catch (error) { /* 忽略 */ }
+      sendEvent('pick', { source: source, count: files.length, label: label });
+      hidePickError();
+      var remaining = files.length;
+      enqueue(files, function () {
+        remaining -= 1;
+        // 等这一批发送完再清空：部分 WebView 在清空 input 后会让 File 对象失效。
+        if (remaining <= 0) {
+          try { input.value = ''; } catch (error) { /* 忽略 */ }
+        }
+      });
+    }
+
+    input.addEventListener('click', function () {
+      try { sessionStorage.setItem('shuttle.pickOpened', '1'); } catch (error) { /* 忽略 */ }
+      sendEvent('open', { label: label });
+    });
+    input.addEventListener('change', function () {
+      if (Date.now() - lastHandledAt < 800) return;
+      lastHandledAt = Date.now();
+      handle('change');
+    });
+    input.addEventListener('input', function () {
+      if (Date.now() - lastHandledAt < 800) return;
+      lastHandledAt = Date.now();
+      handle('input');
+    });
+    window.addEventListener('focus', function () {
+      // 部分 WebView 不派发 change：选择器关闭、页面回到前台时主动读取一次。
+      setTimeout(function () {
+        if (!input.files || input.files.length === 0) return;
+        if (Date.now() - lastHandledAt < 800) return;
+        lastHandledAt = Date.now();
+        sendEvent('focus', { count: input.files.length, label: label });
+        handle('focus');
+      }, 250);
     });
   }
 
@@ -369,8 +463,10 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
   }
 
   try {
-    bindInput(els.photos);
-    bindInput(els.files);
+    initDiagnostics();
+    bindInput(els.photos, '照片');
+    bindInput(els.files, '文件');
+    hidePickError();
     loadTargets();
     ping();
     setInterval(ping, 15000);

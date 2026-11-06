@@ -43,6 +43,19 @@ window.__ModuleLoader__.load({
       'qr.never': '还没有收到文件',
       'qr.lastVisit': '最近扫码：{device} · {ip}',
       'qr.neverVisit': '还没有设备扫码',
+      'diag.title': '诊断（最近事件）',
+      'diag.none': '暂无事件',
+      'diag.pageViews': '页面共打开 {n} 次',
+      'diag.page': '页面打开（第 {n} 次）',
+      'diag.clientPage': '页面脚本加载完成（第 {n} 次）',
+      'diag.reloadedAfterPick': '⚠ 页面在打开选择器后被重载（已选内容丢失）',
+      'diag.open': '点开「{label}」选择器',
+      'diag.pick': '「{label}」返回 {n} 个文件',
+      'diag.empty': '「{label}」返回 0 个文件',
+      'diag.focus': '页面恢复焦点，读取到 {n} 个文件',
+      'diag.uploadStart': '开始上传 {name}',
+      'diag.uploadOk': '上传完成 {name}（{size}）',
+      'diag.uploadError': '上传失败：{message}',
       'device.wechat': '微信内置浏览器',
       'device.mobile': '手机浏览器',
       'device.browser': '浏览器',
@@ -97,6 +110,19 @@ window.__ModuleLoader__.load({
       'qr.never': 'No file received yet',
       'qr.lastVisit': 'Last scan: {device} · {ip}',
       'qr.neverVisit': 'No scan yet',
+      'diag.title': 'Diagnostics (recent events)',
+      'diag.none': 'No events yet',
+      'diag.pageViews': 'Page opened {n} time(s) in total',
+      'diag.page': 'Page opened (#{n})',
+      'diag.clientPage': 'Page script loaded (#{n})',
+      'diag.reloadedAfterPick': '⚠ Page reloaded after opening the picker (selection lost)',
+      'diag.open': 'Opened the {label} picker',
+      'diag.pick': '{label} picker returned {n} file(s)',
+      'diag.empty': '{label} picker returned 0 files',
+      'diag.focus': 'Page refocused, read {n} file(s)',
+      'diag.uploadStart': 'Upload started: {name}',
+      'diag.uploadOk': 'Upload finished: {name} ({size})',
+      'diag.uploadError': 'Upload failed: {message}',
       'device.wechat': 'WeChat browser',
       'device.mobile': 'Mobile browser',
       'device.browser': 'Browser',
@@ -156,6 +182,9 @@ window.__ModuleLoader__.load({
 .fr-url { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11.5px; word-break: break-all; background: var(--dsw-alias-bg-base); border: 1px dashed var(--dsw-alias-border-l1); border-radius: 8px; padding: 8px 10px; color: var(--dsw-alias-label-secondary); margin-bottom: 12px; }
 .fr-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .fr-last { margin: 12px 0 0; font-size: 12px; color: var(--dsw-alias-label-secondary); word-break: break-all; }
+.fr-diag { margin: 10px 0 0; font-size: 12px; color: var(--dsw-alias-label-secondary); }
+.fr-diag summary { cursor: pointer; }
+.fr-diag ul { margin: 6px 0 0; padding-left: 16px; display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow: auto; }
 .fr-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin-bottom: 10px; font-size: 12.5px; }
 .fr-crumb { appearance: none; border: none; background: none; color: var(--dsw-alias-label-secondary); padding: 2px 5px; border-radius: 6px; cursor: pointer; font-size: 12.5px; font-family: inherit; }
 .fr-crumb:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
@@ -241,6 +270,25 @@ window.__ModuleLoader__.load({
       } catch {
         return ''
       }
+    }
+
+    function formatDiagnostic(event, translate) {
+      const type = String(event && event.type ? event.type : '')
+      const detail = (event && event.detail) || {}
+      const label = detail.label || ''
+      if (type === 'page') return translate('diag.page').replace('{n}', String(detail.view || 0))
+      if (type === 'client:page') {
+        if (detail.pickedBeforeReload) return translate('diag.reloadedAfterPick')
+        return translate('diag.clientPage').replace('{n}', String(detail.reloads || 1))
+      }
+      if (type === 'client:open') return translate('diag.open').replace('{label}', label)
+      if (type === 'client:pick') return translate('diag.pick').replace('{label}', label).replace('{n}', String(detail.count || 0))
+      if (type === 'client:empty') return translate('diag.empty').replace('{label}', label)
+      if (type === 'client:focus') return translate('diag.focus').replace('{n}', String(detail.count || 0))
+      if (type === 'upload-start') return translate('diag.uploadStart').replace('{name}', detail.name || '')
+      if (type === 'upload-ok') return translate('diag.uploadOk').replace('{name}', detail.name || '').replace('{size}', formatSize(detail.size))
+      if (type === 'upload-error') return translate('diag.uploadError').replace('{message}', detail.message || '')
+      return type
     }
 
     function fallbackCopy(text, done) {
@@ -693,6 +741,24 @@ window.__ModuleLoader__.load({
           state && state.lastVisit
             ? translate('qr.lastVisit').replace('{device}', visitDevice).replace('{ip}', state.lastVisit.ip || '')
             : translate('qr.neverVisit'),
+        ),
+        h(
+          'details',
+          { className: 'fr-diag' },
+          h('summary', null, translate('diag.title')),
+          h(
+            'ul',
+            null,
+            state && state.pageViews > 1 ? h('li', { key: 'views' }, translate('diag.pageViews').replace('{n}', String(state.pageViews))) : null,
+            state && Array.isArray(state.diagnostics) && state.diagnostics.length > 0
+              ? state.diagnostics
+                  .slice(-8)
+                  .reverse()
+                  .map((event, index) =>
+                    h('li', { key: `${event && event.at}-${index}` }, `${formatTime(event && event.at)} · ${formatDiagnostic(event, translate)}`),
+                  )
+              : h('li', { key: 'none' }, translate('diag.none')),
+          ),
         ),
       )
 

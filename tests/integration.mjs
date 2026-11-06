@@ -102,6 +102,37 @@ try {
   const stateAfterVisit = await (await fetch(`${adminBase}/shuttle/api/state`)).json()
   check('last visit recorded with wechat flag', Boolean(stateAfterVisit.lastVisit) && stateAfterVisit.lastVisit.wechat === true)
 
+  check('phone page has picker diagnostics', pageText.includes('id="pick-error"') && pageText.includes('/event'))
+
+  const eventResponse = await fetch(`${lanBase}/event`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'open', detail: { label: '照片' } }),
+  })
+  const event = await eventResponse.json()
+  check('picker event accepted', eventResponse.ok && event.ok === true, JSON.stringify(event))
+
+  const stateAfterEvent = await (await fetch(`${adminBase}/shuttle/api/state`)).json()
+  check('page view counted', stateAfterEvent.pageViews >= 1)
+  check(
+    'diagnostic recorded',
+    Array.isArray(stateAfterEvent.diagnostics) && stateAfterEvent.diagnostics.some((item) => item.type === 'client:open'),
+  )
+
+  const diagUpload = await fetch(`${lanBase}/upload?name=${encodeURIComponent('diag-test.txt')}`, { method: 'POST', body: 'diag' })
+  check('diagnostic upload accepted', diagUpload.ok)
+  const stateAfterUpload = await (await fetch(`${adminBase}/shuttle/api/state`)).json()
+  check(
+    'upload diagnostics recorded',
+    stateAfterUpload.diagnostics.some((item) => item.type === 'upload-start') &&
+      stateAfterUpload.diagnostics.some((item) => item.type === 'upload-ok'),
+  )
+  await fetch(`${adminBase}/shuttle/api/delete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paths: ['diag-test.txt'] }),
+  })
+
   const badTokenResponse = await fetch(`http://127.0.0.1:${state.port}/s/not-the-token`)
   check('wrong token rejected', badTokenResponse.status === 403, `status=${badTokenResponse.status}`)
 

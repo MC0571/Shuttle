@@ -99,7 +99,23 @@ export async function apply(ctx, config = {}) {
     startedAt: Date.now(),
     lastUpload: null,
     lastVisit: null,
+    pageViews: 0,
+    lastPageAt: null,
+    diagnostics: [],
     lanError: null,
+  }
+
+  /** 记录手机端诊断事件（页面打开、选择器、选择结果、上传开始/结束）。 */
+  const recordDiagnostic = (type, detail, req) => {
+    const userAgent = String(req?.headers?.['user-agent'] ?? '')
+    state.diagnostics.push({
+      at: Date.now(),
+      type: String(type),
+      detail: detail && typeof detail === 'object' ? detail : {},
+      ip: req?.socket?.remoteAddress ?? '',
+      wechat: /MicroMessenger/i.test(userAgent),
+    })
+    if (state.diagnostics.length > 40) state.diagnostics.splice(0, state.diagnostics.length - 40)
   }
 
   const snapshot = () => {
@@ -117,6 +133,9 @@ export async function apply(ctx, config = {}) {
       startedAt: state.startedAt,
       lastUpload: state.lastUpload,
       lastVisit: state.lastVisit,
+      pageViews: state.pageViews,
+      lastPageAt: state.lastPageAt,
+      diagnostics: state.diagnostics.slice(-20),
       lanError: state.lanError,
       preferredIp: preferred,
       addresses,
@@ -138,6 +157,9 @@ export async function apply(ctx, config = {}) {
     if (!action) {
       if (req.method !== 'GET' && req.method !== 'HEAD') return sendText(res, 405, 'Method not allowed')
       const userAgent = String(req.headers['user-agent'] ?? '')
+      state.pageViews += 1
+      state.lastPageAt = Date.now()
+      recordDiagnostic('page', { view: state.pageViews }, req)
       state.lastVisit = {
         at: Date.now(),
         ip: req.socket.remoteAddress ?? '',
@@ -163,15 +185,30 @@ export async function apply(ctx, config = {}) {
     if (action === 'health') {
       return sendJson(res, 200, { ok: true })
     }
+    if (action === 'event') {
+      if (req.method !== 'POST') return sendText(res, 405, 'Method not allowed')
+      try {
+        const body = await readJsonBody(req, 64 * 1024)
+        const type = typeof body.type === 'string' ? body.type.slice(0, 40) : 'unknown'
+        const detail = body.detail && typeof body.detail === 'object' ? body.detail : {}
+        recordDiagnostic(`client:${type}`, detail, req)
+        return sendJson(res, 200, { ok: true })
+      } catch (error) {
+        return sendJson(res, 400, { ok: false, error: error?.message || String(error) })
+      }
+    }
     if (action === 'upload') {
       if (req.method !== 'POST') return sendText(res, 405, 'Method not allowed')
       try {
         const targetDir = url.searchParams.get('dir') ?? ''
         const rawName = url.searchParams.get('name') ?? 'file'
+        recordDiagnostic('upload-start', { name: rawName, dir: targetDir, bytes: Number(req.headers['content-length'] ?? 0) || 0 }, req)
         const result = await saveUpload(state.saveDir, targetDir, rawName, req)
         state.lastUpload = { ...result, at: Date.now(), from: req.socket.remoteAddress ?? '' }
+        recordDiagnostic('upload-ok', { name: result.name, size: result.size }, req)
         return sendJson(res, 200, { ok: true, ...result })
       } catch (error) {
+        recordDiagnostic('upload-error', { message: error?.message || String(error) }, req)
         return sendJson(res, 400, { ok: false, error: error?.message || String(error) })
       }
     }
