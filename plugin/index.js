@@ -102,6 +102,8 @@ export async function apply(ctx, config = {}) {
     pageViews: 0,
     lastPageAt: null,
     diagnostics: [],
+    pickerSession: null,
+    lastPickerAborted: null,
     lanError: null,
   }
 
@@ -136,6 +138,7 @@ export async function apply(ctx, config = {}) {
       pageViews: state.pageViews,
       lastPageAt: state.lastPageAt,
       diagnostics: state.diagnostics.slice(-20),
+      pickerAborted: state.lastPickerAborted,
       lanError: state.lanError,
       preferredIp: preferred,
       addresses,
@@ -160,6 +163,18 @@ export async function apply(ctx, config = {}) {
       state.pageViews += 1
       state.lastPageAt = Date.now()
       recordDiagnostic('page', { view: state.pageViews }, req)
+      if (state.pickerSession) {
+        const waitedMs = Date.now() - state.pickerSession.at
+        if (waitedMs >= 1500) {
+          state.lastPickerAborted = {
+            at: state.pickerSession.at,
+            label: state.pickerSession.label,
+            waitedMs,
+            abortedAt: Date.now(),
+          }
+          state.pickerSession = null
+        }
+      }
       state.lastVisit = {
         at: Date.now(),
         ip: req.socket.remoteAddress ?? '',
@@ -177,6 +192,16 @@ export async function apply(ctx, config = {}) {
         }),
       )
     }
+    if (action === 'resume') {
+      if (req.method !== 'GET') return sendText(res, 405, 'Method not allowed')
+      const aborted = state.lastPickerAborted
+      const recent = aborted && Date.now() - aborted.abortedAt < 10 * 60 * 1000
+      return sendJson(res, 200, {
+        ok: true,
+        pageViews: state.pageViews,
+        pickerAborted: recent ? aborted : null,
+      })
+    }
     if (action === 'dirs') {
       if (req.method !== 'GET') return sendText(res, 405, 'Method not allowed')
       const dirs = await listDirectories(state.saveDir, 2)
@@ -192,6 +217,12 @@ export async function apply(ctx, config = {}) {
         const type = typeof body.type === 'string' ? body.type.slice(0, 40) : 'unknown'
         const detail = body.detail && typeof body.detail === 'object' ? body.detail : {}
         recordDiagnostic(`client:${type}`, detail, req)
+        if (type === 'open') {
+          state.pickerSession = { at: Date.now(), label: typeof detail.label === 'string' ? detail.label : '' }
+        } else if (type === 'pick' || type === 'empty') {
+          state.pickerSession = null
+          if (type === 'pick') state.lastPickerAborted = null
+        }
         return sendJson(res, 200, { ok: true })
       } catch (error) {
         return sendJson(res, 400, { ok: false, error: error?.message || String(error) })

@@ -119,6 +119,21 @@ try {
     Array.isArray(stateAfterEvent.diagnostics) && stateAfterEvent.diagnostics.some((item) => item.type === 'client:open'),
   )
 
+  const resumeHtml = await (await fetch(lanBase)).text()
+  check('phone page has resume banner', resumeHtml.includes('id="resume-error"') && resumeHtml.includes('/resume'))
+
+  await fetch(`${lanBase}/event`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'open', detail: { label: '照片' } }),
+  })
+  await new Promise((resolve) => setTimeout(resolve, 1700))
+  await fetch(lanBase)
+  const stateAfterAbort = await (await fetch(`${adminBase}/shuttle/api/state`)).json()
+  check('picker abort detected', Boolean(stateAfterAbort.pickerAborted) && stateAfterAbort.pickerAborted.label === '照片')
+  const resume = await (await fetch(`${lanBase}/resume`)).json()
+  check('resume reports aborted picker', resume.ok === true && Boolean(resume.pickerAborted))
+
   const diagUpload = await fetch(`${lanBase}/upload?name=${encodeURIComponent('diag-test.txt')}`, { method: 'POST', body: 'diag' })
   check('diagnostic upload accepted', diagUpload.ok)
   const stateAfterUpload = await (await fetch(`${adminBase}/shuttle/api/state`)).json()

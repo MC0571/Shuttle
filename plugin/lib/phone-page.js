@@ -86,6 +86,7 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
   .dot.off { background: #f59e0b; box-shadow: 0 0 0 4px rgba(245,158,11,.14); }
   .notice { background: #eef4ff; border: 1px solid #c3d6f5; color: #1e3a66; border-radius: 12px; padding: 11px 14px; font-size: 12.5px; display: flex; flex-direction: column; gap: 4px; }
   .notice b { font-size: 13px; }
+  .notice-btn { appearance: none; align-self: flex-start; margin-top: 4px; border: 1px solid currentColor; background: transparent; color: inherit; border-radius: 8px; padding: 6px 12px; font-size: 12.5px; font-family: inherit; cursor: pointer; }
   .notice.error { background: #fde9e9; border-color: #f0a8a8; color: #9b1c1c; }
   .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; }
   .row-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -132,6 +133,11 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
   ${wechatNotice}
   <div class="notice error" id="script-error" hidden></div>
   <div class="notice error" id="pick-error" hidden></div>
+  <div class="notice error" id="resume-error" hidden>
+    <b>上次选图没有送达</b>
+    <span>微信在相册选择器打开时回收了后台网页，照片还没交给页面就丢失了（系统行为）。可以点下面按钮重试；多次失败建议改用手机系统相机扫码。</span>
+    <button type="button" class="notice-btn" id="resume-retry">重新选择照片</button>
+  </div>
 
   <section class="card">
     <div class="row-between">
@@ -184,7 +190,9 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
     summary: document.getElementById('summary'),
     status: document.getElementById('status-dot'),
     scriptError: document.getElementById('script-error'),
-    pickError: document.getElementById('pick-error')
+    pickError: document.getElementById('pick-error'),
+    resumeError: document.getElementById('resume-error'),
+    resumeRetry: document.getElementById('resume-retry')
   };
   var pending = [];
   var running = false;
@@ -427,6 +435,32 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
     });
   }
 
+  function loadResume() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', BASE + '/resume', true);
+    xhr.onload = function () {
+      var data = null;
+      try { data = JSON.parse(xhr.responseText); } catch (error) { data = null; }
+      if (!data || !data.ok || !data.pickerAborted) return;
+      if (els.resumeError) els.resumeError.hidden = false;
+      sendEvent('resumeNotice', { waitedMs: Number(data.pickerAborted.waitedMs) || 0 });
+    };
+    try { xhr.send(); } catch (error) { /* 恢复提示失败不影响使用 */ }
+  }
+
+  function bindResumeRetry() {
+    if (!els.resumeRetry) return;
+    els.resumeRetry.addEventListener('click', function () {
+      sendEvent('retry', { source: 'resume' });
+      if (els.resumeError) els.resumeError.hidden = true;
+      try {
+        els.photos.click();
+      } catch (error) {
+        showPickError('无法再次打开选择器，请返回微信重新扫码。');
+      }
+    });
+  }
+
   function loadTargets() {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', BASE + '/dirs', true);
@@ -466,7 +500,9 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
     initDiagnostics();
     bindInput(els.photos, '照片');
     bindInput(els.files, '文件');
+    bindResumeRetry();
     hidePickError();
+    loadResume();
     loadTargets();
     ping();
     setInterval(ping, 15000);

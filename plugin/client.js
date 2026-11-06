@@ -56,6 +56,7 @@ window.__ModuleLoader__.load({
       'diag.uploadStart': '开始上传 {name}',
       'diag.uploadOk': '上传完成 {name}（{size}）',
       'diag.uploadError': '上传失败：{message}',
+      'diag.aborted': '⚠ 上次选图时页面被微信重载：相册选择器打开期间网页被系统回收，照片没有送达。可让手机重试，或改用手机系统相机扫码。',
       'device.wechat': '微信内置浏览器',
       'device.mobile': '手机浏览器',
       'device.browser': '浏览器',
@@ -123,6 +124,7 @@ window.__ModuleLoader__.load({
       'diag.uploadStart': 'Upload started: {name}',
       'diag.uploadOk': 'Upload finished: {name} ({size})',
       'diag.uploadError': 'Upload failed: {message}',
+      'diag.aborted': '⚠ The page was reloaded by WeChat while the photo picker was open; the photo never reached the page. Retry on the phone, or use the system camera.',
       'device.wechat': 'WeChat browser',
       'device.mobile': 'Mobile browser',
       'device.browser': 'Browser',
@@ -760,6 +762,9 @@ window.__ModuleLoader__.load({
               : h('li', { key: 'none' }, translate('diag.none')),
           ),
         ),
+        state && state.pickerAborted && Date.now() - state.pickerAborted.abortedAt < 10 * 60 * 1000
+          ? h('p', { className: 'fr-hint fr-warn', style: { margin: '8px 0 0' } }, translate('diag.aborted'))
+          : null,
       )
 
       const filesCard = h(
