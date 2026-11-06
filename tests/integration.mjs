@@ -96,7 +96,8 @@ try {
     wechatText.includes('accept="image/*,video/*"') && !wechatText.includes('capture='),
   )
   check('camera entry merged into photos', !wechatText.includes('id="camera"'))
-  check('picker tiles are labels (click forwards to input)', (wechatText.match(/<label class="picker"/g) || []).length === 2)
+  check('picker tiles are labels (click forwards to input)', (wechatText.match(/<label class="picker"/g) || []).length === 3)
+  check('compat picker keeps no accept (system picker)', wechatText.includes('id="compat"') && wechatText.includes('for="compat"'))
   check('normal page keeps a real photo picker', pageText.includes('accept="image/*,video/*"') && !pageText.includes('capture='))
 
   const stateAfterVisit = await (await fetch(`${adminBase}/shuttle/api/state`)).json()
