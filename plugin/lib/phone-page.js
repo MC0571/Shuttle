@@ -52,7 +52,7 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
       <label class="picker">
         ${fileIcon}
         <span class="picker-title">文件</span>
-        <input class="picker-input" id="files" type="file" accept="*/*" multiple>
+        <input class="picker-input" id="files" type="file" accept="application/pdf,application/zip,application/x-zip-compressed,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/csv,text/markdown,application/json,application/epub+zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.txt,.md,.csv,.json,.epub" multiple>
       </label>`
   const pickerGridClass = wechat ? 'pickers pickers-single' : 'pickers pickers-double'
   const pickerNote = wechat

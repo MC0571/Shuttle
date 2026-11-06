@@ -100,6 +100,7 @@ try {
   check('picker tiles are labels (click forwards to input)', (wechatText.match(/<label class="picker"/g) || []).length === 1)
   check('picker inputs overlay the tiles', wechatText.includes('class="picker-input"') && wechatText.includes('id="files"'))
   check('file input declares wildcard accept', wechatText.includes('accept="*/*"'))
+  check('browser file entry declares document accept', pageText.includes('application/pdf') && pageText.includes('.docx'))
   check('phone page pinned to light theme', !wechatText.includes('prefers-color-scheme') && wechatText.includes('color-scheme: light'))
   check(
     'normal page shows photo and file entries',
