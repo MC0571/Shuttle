@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Shuttle">
+  <rect width="64" height="64" rx="15" fill="#111827"/>
+  <g fill="#F8FAFC" fill-rule="evenodd">
+    <path d="M11 11h16v16H11V11zm4 4v8h8v-8h-8z"/>
+    <path d="M37 11h16v16H37V11zm4 4v8h8v-8h-8z"/>
+    <path d="M11 37h16v16H11V37zm4 4v8h8v-8h-8z"/>
+  </g>
+  <g fill="#F8FAFC">
+    <rect x="37" y="37" width="5" height="5" rx="1"/>
+    <rect x="48" y="37" width="5" height="5" rx="1"/>
+    <rect x="37" y="48" width="5" height="5" rx="1"/>
+    <rect x="43" y="43" width="10" height="5" rx="1"/>
+    <rect x="48" y="48" width="5" height="5" rx="1"/>
+  </g>
+  <circle cx="32" cy="32" r="5.5" fill="#60A5FA"/>
+</svg>

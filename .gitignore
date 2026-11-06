@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# 依赖与构建产物（本插件无构建步骤，保留以防后续引入）
+node_modules/
+dist/
+
+# 本地环境与日志
+.env
+.env.*
+*.log
+
+# 编辑器
+.idea/
+.vscode/
