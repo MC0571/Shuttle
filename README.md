@@ -29,36 +29,6 @@ plugin_manager remove_bundle target=shuttle-dsh
 
 安装后 DSH 侧边栏出现「文件穿梭机」入口。首次使用需允许系统防火墙的「接受传入连接」。刷新 Web UI 页面以加载新的前端模块。
 
-## 版本与发布
-
-- 版本号只维护一处：`plugin/package.json` 的 `version`；发布时同步更新 `CHANGELOG.md`。
-- 每个发布对应一个 Git tag：`v<version>`（例如 `v0.1.7`）。
-- 发布流程：
-
-```bash
-# 1. 修改 plugin/package.json 的 version，并更新 CHANGELOG.md
-# 2. 提交
-git add -A && git commit -m "feat: ..." 
-# 3. 打 tag（与 package.json 保持一致）
-VERSION=$(node -p "require('./plugin/package.json').version")
-git tag -a "v$VERSION" -m "shuttle-dsh $VERSION"
-# 4. 让 DSH 重新加载本地 link 安装
-#    plugin_manager remove_bundle target=shuttle-dsh
-#    plugin_manager install_bundle target=<仓库>/plugin
-```
-
-## 回滚
-
-仓库使用 Git 管理，可随时回到某个已发布版本：
-
-```bash
-git log --oneline --decorate      # 查看历史
-git checkout v0.1.7               # 临时检出到某个版本
-git checkout -b fix/xxx v0.1.7    # 或基于旧版本开修复分支
-```
-
-> 注意：DSH 以 `link:` 方式安装本目录，工作区文件变化会直接影响正在运行的插件；回滚后需要重新加载插件（remove + install，或重启 DSH）。
-
 ## 开发提示
 
 - 手机上传页由 Host 端动态返回（`lib/phone-page.js`），完全自包含，无外部资源。

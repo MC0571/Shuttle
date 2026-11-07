@@ -87,20 +87,80 @@ try {
     },
   })
   const wechatText = await wechatPage.text()
-  check('wechat browser notice rendered', wechatPage.ok && wechatText.includes('你正在微信内置浏览器中打开'))
+  check('wechat page is served', wechatPage.ok)
   const scriptBody = (wechatText.split('<script>')[1] || '').split('</script>')[0]
   check('phone page script is ES5', !/\basync\b|\bawait\b|=>|\bconst\b|\blet\b/.test(scriptBody))
 
   check(
-    'wechat page keeps a real photo picker',
-    wechatText.includes('accept="image/*,video/*"') && !wechatText.includes('capture='),
+    'wechat page shows only the file entry',
+    wechatText.includes('id="files"') && !wechatText.includes('id="photos"') && !wechatText.includes('id="compat"'),
   )
-  check('camera entry merged into photos', !wechatText.includes('id="camera"'))
-  check('picker tiles are labels (click forwards to input)', (wechatText.match(/<label class="picker"/g) || []).length === 2)
-  check('normal page keeps a real photo picker', pageText.includes('accept="image/*,video/*"') && !pageText.includes('capture='))
+  check('wechat page explains browser/camera', wechatText.includes('picker-note') && wechatText.includes('在浏览器中打开'))
+  check('entries have no subtitle text', !wechatText.includes('picker-desc') && !pageText.includes('picker-desc'))
+  check('picker tiles are labels (click forwards to input)', (wechatText.match(/<label class="picker"/g) || []).length === 1)
+  check('picker inputs overlay the tiles', wechatText.includes('class="picker-input"') && wechatText.includes('id="files"'))
+  check('file input declares wildcard accept', wechatText.includes('accept="*/*"'))
+  check('browser file entry declares document accept', pageText.includes('application/pdf') && pageText.includes('.docx'))
+  check('phone page pinned to light theme', !wechatText.includes('prefers-color-scheme') && wechatText.includes('color-scheme: light'))
+  check(
+    'normal page shows photo and file entries',
+    pageText.includes('accept="image/*,video/*"') && pageText.includes('id="files"') && pageText.includes('id="photos"') && !pageText.includes('id="compat"'),
+  )
+  check('wechat top notice replaced by inline note', !wechatText.includes('你正在微信内置浏览器中打开'))
 
   const stateAfterVisit = await (await fetch(`${adminBase}/shuttle/api/state`)).json()
   check('last visit recorded with wechat flag', Boolean(stateAfterVisit.lastVisit) && stateAfterVisit.lastVisit.wechat === true)
+
+  check('phone page has picker diagnostics', pageText.includes('id="pick-error"') && pageText.includes('/event'))
+
+  const eventResponse = await fetch(`${lanBase}/event`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'open', detail: { label: '照片' } }),
+  })
+  const event = await eventResponse.json()
+  check('picker event accepted', eventResponse.ok && event.ok === true, JSON.stringify(event))
+
+  const stateAfterEvent = await (await fetch(`${adminBase}/shuttle/api/state`)).json()
+  check('page view counted', stateAfterEvent.pageViews >= 1)
+  check(
+    'diagnostic recorded',
+    Array.isArray(stateAfterEvent.diagnostics) && stateAfterEvent.diagnostics.some((item) => item.type === 'client:open'),
+  )
+
+  const resumeHtml = await (await fetch(lanBase)).text()
+  check('phone page has no retry banner', !resumeHtml.includes('resume-error'))
+  check(
+    'header puts host beside product name',
+    resumeHtml.includes('class="head-meta"') && resumeHtml.includes('class="host-name"'),
+  )
+  check('header drops save-dir subtitle', !resumeHtml.includes('发送到') && !resumeHtml.includes('FilesRemote'))
+
+  await fetch(`${lanBase}/event`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'open', detail: { label: '照片' } }),
+  })
+  await new Promise((resolve) => setTimeout(resolve, 1700))
+  await fetch(lanBase)
+  const stateAfterAbort = await (await fetch(`${adminBase}/shuttle/api/state`)).json()
+  check('picker abort detected', Boolean(stateAfterAbort.pickerAborted) && stateAfterAbort.pickerAborted.label === '照片')
+  const resume = await (await fetch(`${lanBase}/resume`)).json()
+  check('resume reports aborted picker', resume.ok === true && Boolean(resume.pickerAborted))
+
+  const diagUpload = await fetch(`${lanBase}/upload?name=${encodeURIComponent('diag-test.txt')}`, { method: 'POST', body: 'diag' })
+  check('diagnostic upload accepted', diagUpload.ok)
+  const stateAfterUpload = await (await fetch(`${adminBase}/shuttle/api/state`)).json()
+  check(
+    'upload diagnostics recorded',
+    stateAfterUpload.diagnostics.some((item) => item.type === 'upload-start') &&
+      stateAfterUpload.diagnostics.some((item) => item.type === 'upload-ok'),
+  )
+  await fetch(`${adminBase}/shuttle/api/delete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paths: ['diag-test.txt'] }),
+  })
 
   const badTokenResponse = await fetch(`http://127.0.0.1:${state.port}/s/not-the-token`)
   check('wrong token rejected', badTokenResponse.status === 403, `status=${badTokenResponse.status}`)
