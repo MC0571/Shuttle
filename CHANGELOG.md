@@ -2,6 +2,13 @@
 
 遵循 [Semantic Versioning](https://semver.org/)；每个标题对应一个 Git tag `v<version>`。
 
+## [0.1.17] - 2026-11-08
+
+### Changed
+- 仓库结构：插件包移到仓库根目录（此前在 `plugin/` 子目录），`plugin_manager install_bundle target=github:MC0571/Shuttle` 可以直接安装；此前会被判定为“没有声明组合包”。
+- README 安装说明改为 GitHub 安装（默认分支）与本地目录安装两种方式。
+- 集成测试的模块路径同步调整。
+
 ## [0.1.16] - 2026-11-08
 
 ### Fixed

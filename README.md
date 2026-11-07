@@ -1,45 +1,86 @@
 # 文件穿梭机 · Shuttle
 
-DeepSeek Harness（DSH）插件：电脑显示二维码，手机扫码即可把照片、视频和任意文件**直接传到这台电脑**。数据只在同一局域网内传输，不经过任何中转服务器，手机端零安装。
+DeepSeek Harness 插件：电脑显示一个二维码，手机用系统相机扫码，就能把照片、视频和任意文件**直接传到这台电脑**。数据只在同一个局域网内传输，不经过任何中转服务器；手机端零安装。
 
-插件本体位于 [`plugin/`](plugin/)，安装标识（npm 包名）为 `shuttle-dsh`。
+## 功能
 
-## 仓库结构
+- **扫码传文件**：手机与电脑连同一个 WiFi，扫二维码打开上传页；浏览器/系统相机场景显示「照片」「文件」两个入口，微信内置浏览器内只显示「文件」入口（系统选择器里可选「图片」）。
+- **断点能力**：手机端按文件逐个上传，实时显示每个文件的进度；失败可以重新选择该文件重传。
+- **文件与目录管理**：在 DSH Web UI 的「文件穿梭机」页面里浏览已接收文件、进入子目录、新建/重命名/删除文件与空目录、在系统文件管理器中打开。
+- **网络接口选择**：电脑有多个网卡（VPN、虚拟机网桥等）时，手动选择与手机同一 WiFi 的地址，二维码随之更新。
+- **链接重置**：一键轮换一次性 token，旧二维码立即失效。
+- **纯离线**：二维码在 Host 端本地生成，不依赖任何外部服务。
+
+## 安装
+
+从 GitHub 安装（默认分支 main）：
 
 ```
-.
-├── plugin/                  # 可安装的 DSH bundle
-│   ├── index.js             # Host 半：局域网接收服务 + 同源管理 API
-│   ├── client.js            # Client 半：DSH Web UI 页面（二维码 / 文件管理）
-│   ├── lib/                 # 手机上传页、文件系统操作、二维码、网络工具
-│   ├── vendor/qrcode.mjs    # 本地二维码生成（MIT，见 THIRD_PARTY_NOTICES）
-│   ├── locale/              # 插件显示名与描述（中 / 英）
-│   └── cordis.patch.yml     # bundle patch（插件行）
-├── tests/integration.mjs    # 集成测试（真实 HTTP 服务 + 临时目录）
-├── CHANGELOG.md             # 版本记录
-└── README.md
+plugin_manager install_bundle target=github:MC0571/Shuttle
 ```
 
-## 安装 / 卸载
+本地目录安装（开发调试用）：
 
-```text
-plugin_manager install_bundle target=/Users/mc/dev/files-remote/plugin
-plugin_manager remove_bundle target=shuttle-dsh
+```
+plugin_manager install_bundle target=<本仓库绝对路径>
 ```
 
-安装后 DSH 侧边栏出现「文件穿梭机」入口。首次使用需允许系统防火墙的「接受传入连接」。刷新 Web UI 页面以加载新的前端模块。
+安装后侧边栏会出现「文件穿梭机」入口；首次使用请允许系统防火墙的「接受传入连接」。
 
-## 开发提示
+## 使用
 
-- 手机上传页由 Host 端动态返回（`lib/phone-page.js`），完全自包含，无外部资源。
-- 手机端脚本刻意保持 ES5 语法，兼容微信内置浏览器旧内核。
-- 二维码在 Host 端本地生成（`lib/qr.js` 调用 `vendor/qrcode.mjs`），不依赖任何外部服务。
-- 改动后至少运行一次集成测试（见下）。
+1. 打开侧边栏「文件穿梭机」。
+2. 手机上用**系统相机**扫描页面上的二维码（微信内置浏览器也可以：会显示单入口「文件」；需要照片/相机选择器时请用系统相机扫码）。
+3. 在上传页选择照片/文件，选择保存子目录（可选），等待上传完成。
+4. 回到电脑页面查看文件，可直接打开所在文件夹、重命名或删除。
 
-### 测试
+## 配置
 
-```bash
-node tests/integration.mjs
+`cordis.patch.yml` 的 `config` 支持：
+
+| 字段 | 含义 |
+|---|---|
+| `saveDir` | 接收目录；默认 `~/Downloads/Shuttle`。界面上也可以随时修改，修改结果持久化到 `$DSH_HOME/shuttle/settings.json`。 |
+
+运行期设置（保存目录、网络接口）由界面写入同一设置文件；二维码 token 每次 DSH 启动或手动重置时轮换。
+
+## 接口
+
+局域网监听端口（随机）：
+
+```
+GET  /s/<token>            手机上传页
+GET  /s/<token>/dirs       可选保存子目录
+POST /s/<token>/upload     原始文件流（?name=<文件名>&dir=<子目录>）
+GET  /s/<token>/health     健康检查
 ```
 
-测试会以临时目录作为接收目录，启动真实的局域网监听与同源管理 API，覆盖上传、子目录、重名、列目录、重命名、删除、路径穿越、token 轮换等。
+同源管理 API（注册在 DSH Web 服务器的 `/shuttle` 前缀，仅供本机 Web UI 调用）：
+
+```
+GET  /shuttle/api/state
+GET  /shuttle/api/qr.svg
+GET  /shuttle/api/list?path=
+POST /shuttle/api/mkdir
+POST /shuttle/api/rename
+POST /shuttle/api/delete
+POST /shuttle/api/open
+POST /shuttle/api/settings
+POST /shuttle/api/rotate-token
+```
+
+## 安全说明
+
+- 目标是“自己的手机 → 自己的电脑”：使用 128-bit 一次性 token、仅监听局域网、请求校验 token 后才可读写；token 在每次启动/重置时轮换。
+- 管理 API 只挂在 DSH Web 服务器（默认仅回环地址）上，不暴露给局域网。
+- 手机上传页是本地生成的自包含 HTML，不加载任何外部资源。
+- 若要防止同一 WiFi 内的其他人窥探，请只在可信网络使用；后续可加入 HTTPS + 证书指纹（需要额外的配对流程）。
+
+## 已知限制
+
+- 手机零安装意味着 iOS 通过网页上传时可能把 HEIC 转成 JPEG、Live Photo 只保留静帧。
+- 微信「扫一扫」打开局域网 IP + 非标准端口的地址时，可能被微信拦截或缓存，表现为“有时能开、有时没反应”；请优先使用系统相机，或按页面提示在浏览器中打开。
+- 微信内的相册选择器路径可能在选图期间被系统回收（表现为页面重置、照片丢失），因此微信内只保留稳定的「文件」入口；需要更顺手的体验请改用手机系统相机扫码，或在浏览器中打开。
+- iOS 切后台会挂起页面：大视频传输时请保持页面在前台。
+- 删除目录仅支持空目录，避免误删整棵目录树。
+- 当前版本不提供反向传输（电脑 → 手机）与剪贴板同步。
