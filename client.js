@@ -76,6 +76,17 @@ window.__ModuleLoader__.load({
       'files.deleteDirConfirm': '删除空文件夹「{name}」？',
       'files.received': '收到新文件：{name}',
       'files.count': '{dirs} 个文件夹 · {files} 个文件',
+      'files.search': '搜索文件名…',
+      'files.sort': '排序',
+      'files.sortTimeDesc': '最新优先',
+      'files.sortTimeAsc': '最早优先',
+      'files.sortNameAsc': '名称 A→Z',
+      'files.sortNameDesc': '名称 Z→A',
+      'files.sortSizeDesc': '大小：大到小',
+      'files.sortSizeAsc': '大小：小到大',
+      'files.sortType': '类型',
+      'files.noMatch': '没有匹配的文件',
+      'files.more': '更多操作',
       'settings.title': '保存目录',
       'settings.saveDir': '保存到',
       'settings.change': '修改',
@@ -149,6 +160,17 @@ window.__ModuleLoader__.load({
       'files.deleteDirConfirm': 'Delete the empty folder "{name}"?',
       'files.received': 'New file received: {name}',
       'files.count': '{dirs} folders · {files} files',
+      'files.search': 'Search file name…',
+      'files.sort': 'Sort',
+      'files.sortTimeDesc': 'Newest first',
+      'files.sortTimeAsc': 'Oldest first',
+      'files.sortNameAsc': 'Name A→Z',
+      'files.sortNameDesc': 'Name Z→A',
+      'files.sortSizeDesc': 'Size: large to small',
+      'files.sortSizeAsc': 'Size: small to large',
+      'files.sortType': 'Type',
+      'files.noMatch': 'No matching files',
+      'files.more': 'More actions',
       'settings.title': 'Save folder',
       'settings.saveDir': 'Save to',
       'settings.change': 'Change',
@@ -224,14 +246,28 @@ window.__ModuleLoader__.load({
 .fr-crumb:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
 .fr-crumb-sep { color: var(--dsw-alias-border-l2); padding: 0 1px; }
 .fr-list { border-top: 1px solid var(--dsw-alias-border-l1); flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
-.fr-row { display: grid; grid-template-columns: 18px minmax(0, 1fr) 74px 116px auto; align-items: center; gap: 10px; padding: 9px 6px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
+.fr-row { display: grid; grid-template-columns: 18px minmax(0, 1fr) 72px 102px 30px; align-items: center; gap: 10px; padding: 8px 6px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
 .fr-row:hover { background: var(--dsw-alias-bg-layer-2); }
 .fr-row-icon { font-size: 13px; text-align: center; }
-.fr-row-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.fr-row-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; overflow-wrap: anywhere; font-size: 13px; line-height: 1.35; max-height: 2.7em; }
 .fr-row-link { appearance: none; border: none; background: none; text-align: left; padding: 0; color: var(--dsw-alias-brand-primary); cursor: pointer; font-size: 13px; font-family: inherit; }
 .fr-row-link:hover { text-decoration: underline; }
 .fr-row-meta, .fr-row-time { font-size: 11.5px; color: var(--dsw-alias-label-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fr-row-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.fr-row-actions { display: flex; gap: 8px; justify-content: flex-end; position: relative; }
+.fr-more { appearance: none; border: none; background: none; color: var(--dsw-alias-label-secondary); font-size: 17px; line-height: 1; padding: 2px 4px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+.fr-more:hover:not(:disabled) { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+.fr-more:disabled { opacity: .5; cursor: default; }
+.fr-list-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.fr-search { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 6px 9px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 8px; background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-secondary); }
+.fr-search svg { flex: none; }
+.fr-search input { flex: 1; min-width: 0; appearance: none; border: none; outline: none; background: none; color: var(--dsw-alias-label-primary); font-family: inherit; font-size: 12.5px; padding: 0; }
+.fr-sort { flex: none; max-width: 130px; appearance: none; border: 1px solid var(--dsw-alias-border-l1); background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-secondary); border-radius: 8px; padding: 6px 8px; font-size: 12px; font-family: inherit; }
+.fr-menu-overlay { position: fixed; inset: 0; z-index: 70; }
+.fr-row-menu { position: fixed; z-index: 71; width: 168px; padding: 5px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 10px; background: var(--dsw-alias-bg-overlay); box-shadow: 0 12px 36px rgba(15, 23, 42, .22); }
+.fr-menu-item { display: block; width: 100%; padding: 8px 10px; border: none; border-radius: 7px; background: none; color: var(--dsw-alias-label-primary); font-family: inherit; font-size: 12.5px; text-align: left; cursor: pointer; }
+.fr-menu-item:hover:not(:disabled) { background: var(--dsw-alias-bg-layer-2); }
+.fr-menu-item:disabled { opacity: .5; cursor: default; }
+.fr-menu-item-danger { color: var(--dsw-alias-state-error-primary); }
 .fr-link { appearance: none; border: none; background: none; color: var(--dsw-alias-label-secondary); font-size: 12px; padding: 2px 0; cursor: pointer; font-family: inherit; white-space: nowrap; }
 .fr-link:hover:not(:disabled) { color: var(--dsw-alias-brand-primary); }
 .fr-link:disabled { opacity: .5; cursor: default; }
@@ -306,6 +342,29 @@ window.__ModuleLoader__.load({
       } catch {
         return ''
       }
+    }
+
+    function formatFileTime(milliseconds) {
+      const value = Number(milliseconds)
+      if (!Number.isFinite(value) || value <= 0) return ''
+      const date = new Date(value)
+      if (Number.isNaN(date.getTime())) return ''
+      const now = new Date()
+      const pad = (number) => String(number).padStart(2, '0')
+      const clock = `${pad(date.getHours())}:${pad(date.getMinutes())}`
+      const sameDay = (left, right) =>
+        left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth() && left.getDate() === right.getDate()
+      if (sameDay(date, now)) return `今天 ${clock}`
+      const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+      if (sameDay(date, yesterday)) return `昨天 ${clock}`
+      if (date.getFullYear() === now.getFullYear()) return `${date.getMonth() + 1}月${date.getDate()}日 ${clock}`
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+    }
+
+    function fileExtension(name) {
+      const text = String(name || '')
+      const dot = text.lastIndexOf('.')
+      return dot > 0 && dot < text.length - 1 ? text.slice(dot + 1).toLowerCase() : ''
     }
 
     function formatDiagnostic(event, translate) {
@@ -453,6 +512,15 @@ window.__ModuleLoader__.load({
       const [notice, setNotice] = React.useState('')
       const [busy, setBusy] = React.useState(false)
       const [dialog, setDialog] = React.useState(null)
+      const [search, setSearch] = React.useState('')
+      const [sort, setSort] = React.useState(() => {
+        try {
+          return localStorage.getItem('shuttle.listSort') || 'time-desc'
+        } catch {
+          return 'time-desc'
+        }
+      })
+      const [rowMenu, setRowMenu] = React.useState(null)
 
       const pathRef = React.useRef('')
       const listingSeq = React.useRef(0)
@@ -466,6 +534,30 @@ window.__ModuleLoader__.load({
         },
         [],
       )
+
+      React.useEffect(() => {
+        try {
+          localStorage.setItem('shuttle.listSort', sort)
+        } catch {
+          // localStorage 不可用时仅保留当前会话排序。
+        }
+      }, [sort])
+
+      React.useEffect(() => {
+        if (!rowMenu) return undefined
+        const close = () => setRowMenu(null)
+        const onKey = (event) => {
+          if (event.key === 'Escape') close()
+        }
+        window.addEventListener('keydown', onKey)
+        window.addEventListener('resize', close)
+        document.addEventListener('scroll', close, true)
+        return () => {
+          window.removeEventListener('keydown', onKey)
+          window.removeEventListener('resize', close)
+          document.removeEventListener('scroll', close, true)
+        }
+      }, [rowMenu])
 
       const flash = (text) => {
         setNotice(text)
@@ -513,16 +605,31 @@ window.__ModuleLoader__.load({
       }, [translate])
 
       React.useEffect(() => {
-        refresh('')
-        const timer = setInterval(() => {
-          refresh()
-        }, 2500)
-        const onVisibility = () => {
-          if (!document.hidden) refresh()
+        let timer = null
+        const start = () => {
+          if (timer !== null) return
+          timer = setInterval(() => {
+            if (!document.hidden) refresh()
+          }, 2500)
         }
+        const stop = () => {
+          if (timer === null) return
+          clearInterval(timer)
+          timer = null
+        }
+        const onVisibility = () => {
+          if (document.hidden) {
+            stop()
+            return
+          }
+          refresh()
+          start()
+        }
+        refresh('')
+        start()
         document.addEventListener('visibilitychange', onVisibility)
         return () => {
-          clearInterval(timer)
+          stop()
           document.removeEventListener('visibilitychange', onVisibility)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -702,7 +809,28 @@ window.__ModuleLoader__.load({
       const addresses = state && Array.isArray(state.addresses) ? state.addresses : []
       const dirs = listing && Array.isArray(listing.dirs) ? listing.dirs : []
       const files = listing && Array.isArray(listing.files) ? listing.files : []
-      const total = dirs.length + files.length
+
+      const searchNeedle = search.trim().toLowerCase()
+      const matchesSearch = (item) => !searchNeedle || String(item.name || '').toLowerCase().includes(searchNeedle)
+      const sortParts = String(sort || 'time-desc').split('-')
+      const sortKey = sortParts[0] || 'time'
+      const sortAscending = sortParts[1] === 'asc'
+      const compareEntries = (left, right) => {
+        let result = 0
+        if (sortKey === 'name') {
+          result = String(left.name || '').localeCompare(String(right.name || ''), 'zh-Hans-CN', { numeric: true, sensitivity: 'base' })
+        } else if (sortKey === 'size') {
+          result = Number(left.size || 0) - Number(right.size || 0)
+        } else if (sortKey === 'type') {
+          result = fileExtension(left.name).localeCompare(fileExtension(right.name)) || String(left.name || '').localeCompare(String(right.name || ''), 'zh-Hans-CN', { numeric: true, sensitivity: 'base' })
+        } else {
+          result = Number(left.mtime || 0) - Number(right.mtime || 0)
+        }
+        return sortAscending ? result : -result
+      }
+      const visibleDirs = dirs.filter(matchesSearch).slice().sort(compareEntries)
+      const visibleFiles = files.filter(matchesSearch).slice().sort(compareEntries)
+      const visibleTotal = visibleDirs.length + visibleFiles.length
 
       const crumbs = []
       if (state) {
@@ -715,6 +843,15 @@ window.__ModuleLoader__.load({
         }
       }
 
+      const openRowMenu = (event, item) => {
+        const rect = event.currentTarget.getBoundingClientRect()
+        const width = 168
+        const height = 116
+        const left = Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8))
+        const top = rect.bottom + height + 8 > window.innerHeight ? Math.max(8, rect.top - height - 4) : rect.bottom + 4
+        setRowMenu({ item, left, top })
+      }
+
       const renderEntry = (item) =>
         h(
           'div',
@@ -724,13 +861,22 @@ window.__ModuleLoader__.load({
             ? h('button', { type: 'button', className: 'fr-row-name fr-row-link', onClick: () => navigateTo(item.path), title: item.name }, item.name)
             : h('span', { className: 'fr-row-name', title: item.name }, item.name),
           h('span', { className: 'fr-row-meta' }, item.kind === 'directory' ? '' : formatSize(item.size)),
-          h('span', { className: 'fr-row-time' }, formatTime(item.mtime)),
+          h('span', { className: 'fr-row-time', title: formatTime(item.mtime) }, formatFileTime(item.mtime)),
           h(
             'span',
             { className: 'fr-row-actions' },
-            h('button', { type: 'button', className: 'fr-link', onClick: () => revealItem(item), disabled: busy }, translate('files.reveal')),
-            h('button', { type: 'button', className: 'fr-link', onClick: () => renameItem(item), disabled: busy }, translate('common.rename')),
-            h('button', { type: 'button', className: 'fr-link fr-danger', onClick: () => removeItem(item), disabled: busy }, translate('common.delete')),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'fr-more',
+                onClick: (event) => openRowMenu(event, item),
+                disabled: busy,
+                'aria-label': translate('files.more'),
+                title: translate('files.more'),
+              },
+              '⋯',
+            ),
           ),
         )
 
@@ -865,11 +1011,49 @@ window.__ModuleLoader__.load({
             ),
           ),
         ),
-        h('div', { className: 'fr-list' }, total === 0 ? h('div', { className: 'fr-empty' }, translate('common.empty')) : dirs.map(renderEntry).concat(files.map(renderEntry))),
+        h(
+          'div',
+          { className: 'fr-list-toolbar' },
+          h(
+            'label',
+            { className: 'fr-search' },
+            h(
+              'svg',
+              { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', 'aria-hidden': true },
+              h('circle', { cx: 11, cy: 11, r: 6.5 }),
+              h('path', { d: 'M16 16l4.5 4.5' }),
+            ),
+            h('input', {
+              value: search,
+              onChange: (event) => setSearch(event.target.value),
+              placeholder: translate('files.search'),
+              'aria-label': translate('files.search'),
+              spellCheck: false,
+            }),
+          ),
+          h(
+            'select',
+            { className: 'fr-sort', value: sort, onChange: (event) => setSort(event.target.value), 'aria-label': translate('files.sort'), title: translate('files.sort') },
+            h('option', { value: 'time-desc' }, translate('files.sortTimeDesc')),
+            h('option', { value: 'time-asc' }, translate('files.sortTimeAsc')),
+            h('option', { value: 'name-asc' }, translate('files.sortNameAsc')),
+            h('option', { value: 'name-desc' }, translate('files.sortNameDesc')),
+            h('option', { value: 'size-desc' }, translate('files.sortSizeDesc')),
+            h('option', { value: 'size-asc' }, translate('files.sortSizeAsc')),
+            h('option', { value: 'type-asc' }, translate('files.sortType')),
+          ),
+        ),
+        h(
+          'div',
+          { className: 'fr-list' },
+          visibleTotal === 0
+            ? h('div', { className: 'fr-empty' }, searchNeedle ? translate('files.noMatch') : translate('common.empty'))
+            : visibleDirs.map(renderEntry).concat(visibleFiles.map(renderEntry)),
+        ),
         h(
           'div',
           { className: 'fr-foot' },
-          h('span', { className: 'fr-count' }, translate('files.count').replace('{dirs}', String(dirs.length)).replace('{files}', String(files.length))),
+          h('span', { className: 'fr-count' }, translate('files.count').replace('{dirs}', String(visibleDirs.length)).replace('{files}', String(visibleFiles.length))),
         ),
       )
 
@@ -921,6 +1105,66 @@ window.__ModuleLoader__.load({
                 networkCard,
               ),
               h('div', { className: 'fr-main' }, filesCard),
+            )
+          : null,
+        rowMenu
+          ? h(
+              'div',
+              { className: 'fr-menu-overlay', onMouseDown: () => setRowMenu(null) },
+              h(
+                'div',
+                {
+                  className: 'fr-row-menu',
+                  role: 'menu',
+                  style: { left: rowMenu.left, top: rowMenu.top },
+                  onMouseDown: (event) => event.stopPropagation(),
+                },
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'fr-menu-item',
+                    role: 'menuitem',
+                    disabled: busy,
+                    onClick: () => {
+                      const item = rowMenu.item
+                      setRowMenu(null)
+                      revealItem(item)
+                    },
+                  },
+                  translate('files.reveal'),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'fr-menu-item',
+                    role: 'menuitem',
+                    disabled: busy,
+                    onClick: () => {
+                      const item = rowMenu.item
+                      setRowMenu(null)
+                      renameItem(item)
+                    },
+                  },
+                  translate('common.rename'),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'fr-menu-item fr-menu-item-danger',
+                    role: 'menuitem',
+                    disabled: busy,
+                    onClick: () => {
+                      const item = rowMenu.item
+                      setRowMenu(null)
+                      removeItem(item)
+                    },
+                  },
+                  translate('common.delete'),
+                ),
+              ),
             )
           : null,
         dialog ? h(Dialog, { dialog, translate, onCancel: closeDialog, onSubmit: submitDialog }) : null,
