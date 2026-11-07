@@ -286,7 +286,17 @@ window.__ModuleLoader__.load({
 .fr-row-new { animation: frNewRow 3.2s ease-out; }
 @keyframes frNewRow { 0% { background: rgba(37, 99, 235, .16); } 100% { background: transparent; } }
 .fr-row-busy { opacity: .55; }
-.fr-row-icon { width: 32px; height: 32px; display: grid; place-items: center; font-size: 13px; }
+.fr-row-icon { width: 32px; height: 32px; display: grid; place-items: center; color: var(--dsw-alias-label-secondary); }
+.fr-row-icon svg { display: block; }
+.fr-type-folder { color: #3b82f6; }
+.fr-type-image { color: #14b8a6; }
+.fr-type-video { color: #8b5cf6; }
+.fr-type-audio { color: #ec4899; }
+.fr-type-archive { color: #f59e0b; }
+.fr-type-sheet { color: #22c55e; }
+.fr-type-presentation { color: #f97316; }
+.fr-type-code { color: #64748b; }
+.fr-type-document, .fr-type-file { color: #60a5fa; }
 .fr-check { width: 15px; height: 15px; margin: 0; accent-color: var(--dsw-alias-brand-primary); cursor: pointer; }
 .fr-thumb { position: relative; width: 32px; height: 32px; border-radius: 8px; overflow: hidden; background: var(--dsw-alias-bg-base); display: block; }
 .fr-thumb img { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -419,18 +429,84 @@ window.__ModuleLoader__.load({
       return dot > 0 && dot < text.length - 1 ? text.slice(dot + 1).toLowerCase() : ''
     }
 
-    function fileIcon(name, kind) {
-      if (kind === 'directory') return '📁'
+    function fileCategory(name, kind) {
+      if (kind === 'directory') return 'folder'
       const extension = fileExtension(name)
-      if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'avif', 'heic'].includes(extension)) return '🖼️'
-      if (['mp4', 'mov', 'm4v', 'avi', 'mkv', 'webm', 'ts'].includes(extension)) return '🎬'
-      if (['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg'].includes(extension)) return '🎵'
-      if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz'].includes(extension)) return '🗜️'
-      if (['pdf', 'doc', 'docx', 'txt', 'md', 'rtf', 'pages'].includes(extension)) return '📄'
-      if (['xls', 'xlsx', 'csv', 'numbers'].includes(extension)) return '📊'
-      if (['ppt', 'pptx', 'key'].includes(extension)) return '📽️'
-      if (['js', 'ts', 'jsx', 'tsx', 'json', 'html', 'css', 'py', 'go', 'rs', 'java', 'sh'].includes(extension)) return '🧾'
-      return '📄'
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'avif', 'heic'].includes(extension)) return 'image'
+      if (['mp4', 'mov', 'm4v', 'avi', 'mkv', 'webm', 'ts'].includes(extension)) return 'video'
+      if (['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg'].includes(extension)) return 'audio'
+      if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz'].includes(extension)) return 'archive'
+      if (['xls', 'xlsx', 'csv', 'numbers'].includes(extension)) return 'sheet'
+      if (['ppt', 'pptx', 'key'].includes(extension)) return 'presentation'
+      if (['js', 'ts', 'jsx', 'tsx', 'json', 'html', 'css', 'py', 'go', 'rs', 'java', 'sh'].includes(extension)) return 'code'
+      if (['pdf', 'doc', 'docx', 'txt', 'md', 'rtf', 'pages'].includes(extension)) return 'document'
+      return 'file'
+    }
+
+    function FileTypeIcon({ name, kind, size = 20 }) {
+      const category = fileCategory(name, kind)
+      const common = {
+        className: 'fr-type-' + category,
+        width: size,
+        height: size,
+        viewBox: '0 0 24 24',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 1.7,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+        'aria-hidden': true,
+      }
+      if (category === 'folder') {
+        return h('svg', common, h('path', { d: 'M3.5 6.8a1.7 1.7 0 0 1 1.7-1.7h4l1.8 2.2h7.8a1.7 1.7 0 0 1 1.7 1.7v8.2a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7z' }))
+      }
+      if (category === 'image') {
+        return h('svg', common,
+          h('rect', { x: 3, y: 4.8, width: 18, height: 14.4, rx: 2.4 }),
+          h('circle', { cx: 8.2, cy: 9.4, r: 1.3, fill: 'currentColor', stroke: 'none' }),
+          h('path', { d: 'M4.4 16.7l4-4a1.7 1.7 0 0 1 2.4 0l3 3 1.8-1.8a1.7 1.7 0 0 1 2.4 0l2.2 2.2' }),
+        )
+      }
+      if (category === 'video') {
+        return h('svg', common,
+          h('rect', { x: 3, y: 5, width: 18, height: 14, rx: 2.4 }),
+          h('path', { d: 'M10.2 9.4l5 2.6-5 2.6z', fill: 'currentColor', stroke: 'none' }),
+        )
+      }
+      if (category === 'audio') {
+        return h('svg', common,
+          h('path', { d: 'M9 17.2V6.4l9-1.8v10.8' }),
+          h('circle', { cx: 6.6, cy: 17.6, r: 2.2 }),
+          h('circle', { cx: 15.6, cy: 15.8, r: 2.2 }),
+        )
+      }
+      if (category === 'archive') {
+        return h('svg', common,
+          h('rect', { x: 4, y: 3.6, width: 16, height: 16.8, rx: 2 }),
+          h('path', { d: 'M12 3.6v3.2M12 9.4v2M12 14v2.2M12 18.6v1.8' }),
+        )
+      }
+      if (category === 'sheet') {
+        return h('svg', common,
+          h('rect', { x: 3.2, y: 4.4, width: 17.6, height: 15.2, rx: 2.2 }),
+          h('path', { d: 'M3.2 9.4h17.6M9.6 9.4v10.2M14.6 9.4v10.2' }),
+        )
+      }
+      if (category === 'presentation') {
+        return h('svg', common,
+          h('rect', { x: 3, y: 4, width: 18, height: 12.4, rx: 2 }),
+          h('path', { d: 'M12 16.4v3.4M8.4 21h7.2' }),
+        )
+      }
+      if (category === 'code') {
+        return h('svg', common,
+          h('path', { d: 'M8.5 8.2l-4 3.8 4 3.8M15.5 8.2l4 3.8-4 3.8' }),
+        )
+      }
+      return h('svg', common,
+        h('path', { d: 'M6.4 3.6h6.9l4.9 4.9v11a1.6 1.6 0 0 1-1.6 1.6H6.4a1.6 1.6 0 0 1-1.6-1.6V5.2a1.6 1.6 0 0 1 1.6-1.6z' }),
+        h('path', { d: 'M13.3 3.6v5.2h5.2' }),
+      )
     }
 
     function imageFile(name) {
@@ -1053,7 +1129,7 @@ window.__ModuleLoader__.load({
             ? h(
                 'span',
                 { className: 'fr-thumb' },
-                h('span', { className: 'fr-thumb-fallback', 'aria-hidden': true }, fileIcon(item.name, item.kind)),
+                h('span', { className: 'fr-thumb-fallback', 'aria-hidden': true }, h(FileTypeIcon, { name: item.name, kind: item.kind, size: 18 })),
                 h('img', {
                   src: API + '/thumb?path=' + encodeURIComponent(item.path),
                   loading: 'lazy',
@@ -1063,7 +1139,7 @@ window.__ModuleLoader__.load({
                   },
                 }),
               )
-            : h('span', { className: 'fr-row-icon', 'aria-hidden': true }, fileIcon(item.name, item.kind)),
+            : h('span', { className: 'fr-row-icon' }, h(FileTypeIcon, { name: item.name, kind: item.kind, size: 20 })),
           item.kind === 'directory'
             ? h('button', { type: 'button', className: 'fr-row-name fr-row-link', onClick: () => navigateTo(item.path), title: item.name }, renderName(item))
             : h('span', { className: 'fr-row-name', title: item.name }, renderName(item)),

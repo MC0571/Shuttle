@@ -2,6 +2,11 @@
 
 遵循 [Semantic Versioning](https://semver.org/)；每个标题对应一个 Git tag `v<version>`。
 
+## [0.1.28] - 2026-11-08
+
+### Changed
+- 文件列表图标从 emoji 改为统一的内联 SVG 图标：文件夹、图片、视频、音频、压缩包、文档、表格、演示文稿、代码等分类使用不同的线性图标与颜色，尺寸从 13px emoji 提升为 20px（缩略图回退为 18px）。
+
 ## [0.1.27] - 2026-11-08
 
 ### Changed
