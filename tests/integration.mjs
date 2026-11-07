@@ -11,7 +11,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { mkdtemp, readFile, readdir, rm, stat } from 'node:fs/promises'
 
-const pluginUrl = new URL('../plugin/index.js', import.meta.url).href
+const pluginUrl = new URL('../index.js', import.meta.url).href
 const mod = await import(pluginUrl + '?t=' + Date.now())
 const tmp = await mkdtemp(path.join(os.tmpdir(), 'fr-test-'))
 
