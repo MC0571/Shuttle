@@ -105,6 +105,8 @@ try {
   check('save target starts hidden and uses a bottom sheet', wechatText.includes('id="target-card" hidden') && wechatText.includes('id="dir-sheet"') && !wechatText.includes('<select id="dir"'))
   check('save target hides itself for a root-only listing', wechatText.includes('dirs.length <= 1'))
   check('save target renders directory options dynamically', wechatText.includes('renderDirOptions') && wechatText.includes('dir-option'))
+  check('save target root shows folder name with absolute path', wechatText.includes('var SAVE_DIR =') && wechatText.includes('SAVE_DIR_NAME'))
+  check('save target expresses nesting with indentation rails', wechatText.includes('dir-rail') && wechatText.includes('data-depth'))
   check(
     'normal page shows photo and file entries',
     pageText.includes('accept="image/*,video/*"') && pageText.includes('id="files"') && pageText.includes('id="photos"') && !pageText.includes('id="compat"'),

@@ -189,6 +189,7 @@ export async function apply(ctx, config = {}) {
           token: state.token,
           hostName: os.hostname(),
           saveDirName: path.basename(state.saveDir) || state.saveDir,
+          saveDir: state.saveDir,
           wechat: state.lastVisit.wechat,
         }),
       )
