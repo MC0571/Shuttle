@@ -251,8 +251,7 @@ window.__ModuleLoader__.load({
 .fr-card h2 { margin: 0; font-size: 14px; font-weight: 650; letter-spacing: .01em; }
 .fr-qr-box { display: flex; justify-content: center; padding: 10px; margin-bottom: 10px; border-radius: 12px; background: var(--dsw-alias-bg-base); border: 1px solid var(--dsw-alias-border-l1); }
 .fr-qr { width: 100%; max-width: 200px; height: auto; display: block; border-radius: 10px; background: #fff; }
-.fr-wifi-card { padding: 10px 12px; }
-.fr-wifi-card .fr-qr-hint { margin: 0; padding: 0; border: none; background: none; }
+
 .fr-qr-empty { min-height: 180px; align-items: center; color: var(--dsw-alias-label-secondary); font-size: 12.5px; text-align: center; }
 .fr-qr-hint { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; padding: 10px 12px; border-radius: 10px;
   background: linear-gradient(135deg, rgba(37, 99, 235, .12), rgba(96, 165, 250, .08)); border: 1px solid rgba(37, 99, 235, .22);
@@ -273,6 +272,7 @@ window.__ModuleLoader__.load({
 .fr-warn { color: var(--dsw-alias-state-warn-primary); }
 .fr-url { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11.5px; word-break: break-all; background: var(--dsw-alias-bg-base); border: 1px dashed var(--dsw-alias-border-l1); border-radius: 8px; padding: 8px 10px; color: var(--dsw-alias-label-secondary); margin-bottom: 12px; }
 .fr-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.fr-qr-actions { justify-content: center; }
 .fr-last { margin: 12px 0 0; font-size: 12px; color: var(--dsw-alias-label-secondary); word-break: break-all; }
 .fr-diag { margin: 10px 0 0; font-size: 12px; color: var(--dsw-alias-label-secondary); }
 .fr-diag summary { cursor: pointer; }
@@ -342,6 +342,7 @@ window.__ModuleLoader__.load({
 .fr-count { margin-left: auto; }
 .fr-tips { max-width: none; margin: 0; flex: none; }
 .fr-tips ul { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--dsw-alias-label-secondary); font-size: 12.5px; }
+.fr-tips li strong { font-weight: 650; color: var(--dsw-alias-label-primary); }
 .fr-banner { max-width: 1120px; margin: 0 auto 12px; padding: 9px 12px; border-radius: 9px; font-size: 12.5px; background: var(--dsw-alias-bg-layer-1); }
 .fr-banner-error { color: var(--dsw-alias-state-error-primary); border: 1px solid var(--dsw-alias-state-error-primary); }
 .fr-banner-ok { color: var(--dsw-alias-state-success-primary); border: 1px solid var(--dsw-alias-state-success-primary); }
@@ -1244,15 +1245,6 @@ window.__ModuleLoader__.load({
           ? h('div', { key: row.key, className: 'fr-group' }, h('b', null, row.label))
           : renderEntry(row.item)
 
-      const wifiGlyph = h(
-        'svg',
-        { width: 15, height: 15, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', 'aria-hidden': true },
-        h('path', { d: 'M2.5 8.6a15.2 15.2 0 0 1 19 0' }),
-        h('path', { d: 'M5.6 12.1a10.4 10.4 0 0 1 12.8 0' }),
-        h('path', { d: 'M8.8 15.5a5.6 5.6 0 0 1 6.4 0' }),
-        h('circle', { cx: 12, cy: 19, r: 1.1, fill: 'currentColor', stroke: 'none' }),
-      )
-
       const qrCard = h(
         'section',
         { className: 'fr-card' },
@@ -1263,16 +1255,10 @@ window.__ModuleLoader__.load({
         state && !state.url ? h('p', { className: 'fr-hint fr-warn' }, (state && state.lanError) || translate('qr.noNetwork')) : null,
         h(
           'div',
-          { className: 'fr-actions', style: { marginTop: '10px' } },
+          { className: 'fr-actions fr-qr-actions', style: { marginTop: '10px' } },
           h('button', { type: 'button', className: 'fr-btn', onClick: copyLink, disabled: !state || !state.url }, translate('common.copy')),
           h('button', { type: 'button', className: 'fr-btn', onClick: rotateToken, disabled: busy || !state || !state.url }, translate('qr.reset')),
         ),
-      )
-
-      const wifiCard = h(
-        'section',
-        { className: 'fr-card fr-wifi-card' },
-        h('div', { className: 'fr-qr-hint' }, wifiGlyph, h('span', null, translate('network.hint'))),
       )
 
       const diagnosticsBlock = h(
@@ -1480,7 +1466,6 @@ window.__ModuleLoader__.load({
                 'div',
                 { className: 'fr-side' },
                 qrCard,
-                wifiCard,
                 settingsCard,
                 h(
                   'section',
@@ -1489,7 +1474,7 @@ window.__ModuleLoader__.load({
                   h(
                     'ul',
                     null,
-                    h('li', null, translate('tips.sameWifi')),
+                    h('li', null, h('strong', null, translate('tips.sameWifi'))),
                     h('li', null, translate('tips.wechat')),
                     h('li', null, translate('tips.firewall')),
                     h('li', null, translate('tips.foreground')),
