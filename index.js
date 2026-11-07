@@ -10,7 +10,8 @@
  *   2. 同源管理 API（注册在 DSH Web 服务器的 /shuttle 前缀上）：
  *        GET  /shuttle/api/state         运行状态、二维码 URL、网络接口
  *        GET  /shuttle/api/qr.svg        二维码（离线生成）
- *        GET  /shuttle/api/list?path=    列目录
+ *        GET  /shuttle/api/list?path=    列目录（保存目录内）
+ *        GET  /shuttle/api/browse?path=  列任意目录（保存目录选择器）
  *        POST /shuttle/api/mkdir         新建文件夹
  *        POST /shuttle/api/rename        重命名
  *        POST /shuttle/api/delete        删除（文件夹仅限空目录）
@@ -24,7 +25,7 @@
 import http from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
-import { mkdir } from 'node:fs/promises'
+import { mkdir, readdir } from 'node:fs/promises'
 
 import { renderPhonePage } from './lib/phone-page.js'
 import {
@@ -302,6 +303,18 @@ export async function apply(ctx, config = {}) {
         const target = resolveInside(state.saveDir, typeof body.path === 'string' ? body.path : '')
         const opened = openInFileManager(target)
         return sendJson(res, 200, { ok: true, opened })
+      }
+      if (route === `${ADMIN_API}/browse`) {
+        if (method !== 'GET') return methodNotAllowed(res)
+        const requested = url.searchParams.get('path')
+        const target = path.resolve(expandHome(requested || state.saveDir))
+        const entries = await readdir(target, { withFileTypes: true })
+        const dirs = entries
+          .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.'))
+          .map((entry) => ({ name: entry.name, path: path.join(target, entry.name) }))
+          .sort((left, right) => left.name.localeCompare(right.name, 'zh-Hans-CN'))
+        const parent = path.dirname(target)
+        return sendJson(res, 200, { ok: true, path: target, parent: parent === target ? null : parent, dirs })
       }
       if (route === `${ADMIN_API}/pick-dir`) {
         if (method !== 'POST') return methodNotAllowed(res)

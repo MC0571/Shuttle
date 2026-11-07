@@ -207,6 +207,9 @@ try {
   const listing = await listResponse.json()
   check('admin list shows files', listResponse.ok && listing.files.some((item) => item.name === 'hello world.txt'))
   check('admin list shows dirs', listing.dirs.some((item) => item.path === '旅行'))
+  const browseResponse = await fetch(`${adminBase}/shuttle/api/browse?path=${encodeURIComponent(tmp)}`)
+  const browse = await browseResponse.json()
+  check('admin browse lists subdirectories', browseResponse.ok && browse.ok === true && browse.dirs.some((item) => item.path === path.join(tmp, '旅行')))
 
   const mkdirResponse = await fetch(`${adminBase}/shuttle/api/mkdir`, {
     method: 'POST',

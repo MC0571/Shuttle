@@ -83,6 +83,12 @@ window.__ModuleLoader__.load({
       'settings.pick': '选择文件夹…',
       'settings.unavailable': '当前环境无法打开系统文件夹选择器',
       'settings.updated': '保存目录已更新',
+      'dir.title': '选择保存目录',
+      'dir.up': '上一级',
+      'dir.native': '使用系统选择器…',
+      'dir.choose': '选择此文件夹',
+      'dir.empty': '没有子文件夹',
+      'dir.loading': '加载中…',
       'tips.title': '使用提示',
       'tips.sameWifi': '手机和电脑必须连接同一个 WiFi 或局域网。',
       'tips.wechat': '微信内只显示「文件」入口（照片可在系统选择器的「图片」分类里选）；想要更顺手的体验，建议用手机系统相机扫码，或点右上角「…」→「在浏览器中打开」。',
@@ -156,6 +162,12 @@ window.__ModuleLoader__.load({
       'settings.pick': 'Choose folder…',
       'settings.unavailable': 'The system folder picker is not available here',
       'settings.updated': 'Save folder updated',
+      'dir.title': 'Choose save folder',
+      'dir.up': 'Up',
+      'dir.native': 'System picker…',
+      'dir.choose': 'Use this folder',
+      'dir.empty': 'No subfolders',
+      'dir.loading': 'Loading…',
       'tips.title': 'Good to know',
       'tips.sameWifi': 'Phone and computer must be on the same Wi-Fi or LAN.',
       'tips.wechat': 'Inside WeChat only the “File” entry is shown (photos live under the system picker’s “Images” section). For a smoother flow use the system camera, or open this page in a browser.',
@@ -251,6 +263,24 @@ window.__ModuleLoader__.load({
 .fr-dialog-input { width: 100%; appearance: none; border: 1px solid var(--dsw-alias-border-l2); border-radius: 9px; background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-primary); padding: 9px 11px; font-size: 13.5px; font-family: inherit; margin: 2px 0 16px; }
 .fr-dialog-input:focus { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: -1px; }
 .fr-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.fr-dir-dialog { width: min(560px, calc(100vw - 48px)); max-height: min(640px, calc(100vh - 64px)); display: flex; flex-direction: column;
+  background: var(--dsw-alias-bg-overlay); color: var(--dsw-alias-label-primary); border: 1px solid var(--dsw-alias-border-l1); border-radius: 14px;
+  padding: 16px; box-shadow: 0 18px 60px rgba(15, 23, 42, .28); }
+.fr-dir-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.fr-dir-head h3 { margin: 0; font-size: 15px; font-weight: 650; }
+.fr-dir-path { margin: 10px 0; padding: 8px 10px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 8px; background: var(--dsw-alias-bg-base);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; word-break: break-all; color: var(--dsw-alias-label-secondary); }
+.fr-dir-toolbar { display: flex; gap: 8px; margin-bottom: 10px; }
+.fr-dir-list { flex: 1; min-height: 180px; max-height: 360px; overflow: auto; border-top: 1px solid var(--dsw-alias-border-l1); }
+.fr-dir-row { display: flex; align-items: center; gap: 9px; width: 100%; padding: 9px 6px; border: none; border-bottom: 1px solid var(--dsw-alias-border-l1);
+  background: none; color: var(--dsw-alias-label-primary); font-family: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.fr-dir-row:hover { background: var(--dsw-alias-bg-layer-2); }
+.fr-dir-row-icon { flex: none; font-size: 14px; }
+.fr-dir-row-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fr-dir-row-chevron { flex: none; color: var(--dsw-alias-label-secondary); }
+.fr-dir-empty { padding: 22px 10px; text-align: center; color: var(--dsw-alias-label-secondary); font-size: 12.5px; }
+.fr-dir-error { margin: 8px 0 0; color: var(--dsw-alias-state-error-primary); font-size: 12.5px; }
+.fr-dir-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
 @media (max-width: 900px) {
   .fr-root { padding: 16px 14px 20px; overflow: auto; }
   .fr-grid { display: flex; flex-direction: column; flex: none; }
@@ -434,6 +464,65 @@ window.__ModuleLoader__.load({
       )
     }
 
+    function DirBrowserDialog({ browser, translate, busy, onNavigate, onChoose, onNative, onCancel }) {
+      const current = browser || { path: '', parent: null, dirs: [], loading: false, error: '' }
+      return h(
+        'div',
+        {
+          className: 'fr-overlay',
+          onMouseDown: (event) => {
+            if (event.target === event.currentTarget) onCancel()
+          },
+        },
+        h(
+          'div',
+          {
+            className: 'fr-dir-dialog',
+            role: 'dialog',
+            'aria-modal': 'true',
+            onKeyDown: (event) => {
+              if (event.key === 'Escape') {
+                event.preventDefault()
+                onCancel()
+              }
+            },
+          },
+          h('div', { className: 'fr-dir-head' }, h('h3', null, translate('dir.title')), h('button', { type: 'button', className: 'fr-link', onClick: onCancel }, translate('common.cancel'))),
+          h('div', { className: 'fr-dir-path', title: current.path }, current.path || ''),
+          h(
+            'div',
+            { className: 'fr-dir-toolbar' },
+            h('button', { type: 'button', className: 'fr-btn', onClick: () => current.parent && onNavigate(current.parent), disabled: busy || !current.parent }, '↑ ' + translate('dir.up')),
+            h('button', { type: 'button', className: 'fr-btn', onClick: onNative, disabled: busy }, translate('dir.native')),
+          ),
+          h(
+            'div',
+            { className: 'fr-dir-list' },
+            current.loading
+              ? h('div', { className: 'fr-dir-empty' }, translate('dir.loading'))
+              : current.dirs.length === 0
+                ? h('div', { className: 'fr-dir-empty' }, translate('dir.empty'))
+                : current.dirs.map((dir) =>
+                    h(
+                      'button',
+                      { key: dir.path, type: 'button', className: 'fr-dir-row', onClick: () => onNavigate(dir.path), disabled: busy },
+                      h('span', { className: 'fr-dir-row-icon', 'aria-hidden': true }, '📁'),
+                      h('span', { className: 'fr-dir-row-name', title: dir.name }, dir.name),
+                      h('span', { className: 'fr-dir-row-chevron', 'aria-hidden': true }, '›'),
+                    ),
+                  ),
+            current.error ? h('p', { className: 'fr-dir-error' }, current.error) : null,
+          ),
+          h(
+            'div',
+            { className: 'fr-dir-foot' },
+            h('button', { type: 'button', className: 'fr-btn', onClick: onCancel }, translate('common.cancel')),
+            h('button', { type: 'button', className: 'fr-btn fr-btn-primary', onClick: onChoose, disabled: busy || current.loading }, translate('dir.choose')),
+          ),
+        ),
+      )
+    }
+
     function Page(props) {
       const translate = React.useCallback(
         (key) => {
@@ -453,6 +542,7 @@ window.__ModuleLoader__.load({
       const [notice, setNotice] = React.useState('')
       const [busy, setBusy] = React.useState(false)
       const [dialog, setDialog] = React.useState(null)
+      const [dirBrowser, setDirBrowser] = React.useState(null)
 
       const pathRef = React.useRef('')
       const listingSeq = React.useRef(0)
@@ -667,8 +757,55 @@ window.__ModuleLoader__.load({
         })
       }
 
-      const changeSaveDir = () => {
+      const applySaveDir = async (picked) => {
+        if (!picked) return false
+        const updated = await request('/settings', postJson({ saveDir: picked }))
+        setState(updated)
+        pathRef.current = ''
+        await loadListing('')
+        flash(translate('settings.updated'))
+        return true
+      }
+
+      const loadBrowseDir = async (target) => {
+        const wanted = typeof target === 'string' && target ? target : (state ? state.saveDir : '')
+        setDirBrowser((previous) => ({
+          path: wanted,
+          parent: previous ? previous.parent : null,
+          dirs: previous ? previous.dirs : [],
+          loading: true,
+          error: '',
+        }))
+        try {
+          const data = await request('/browse?path=' + encodeURIComponent(wanted))
+          setDirBrowser({ path: data.path, parent: data.parent, dirs: Array.isArray(data.dirs) ? data.dirs : [], loading: false, error: '' })
+        } catch (browseError) {
+          setDirBrowser((previous) => ({
+            path: previous ? previous.path : wanted,
+            parent: previous ? previous.parent : null,
+            dirs: previous ? previous.dirs : [],
+            loading: false,
+            error: browseError && browseError.message ? browseError.message : String(browseError),
+          }))
+        }
+      }
+
+      const openSaveDirPicker = () => {
         if (!state) return
+        setDirBrowser({ path: state.saveDir, parent: null, dirs: [], loading: true, error: '' })
+        loadBrowseDir(state.saveDir)
+      }
+
+      const chooseBrowseDir = () => {
+        const current = dirBrowser
+        if (!current || current.loading) return
+        act(async () => {
+          const changed = await applySaveDir(current.path)
+          if (changed) setDirBrowser(null)
+        })
+      }
+
+      const chooseNativeDir = () => {
         act(async () => {
           let picked = null
           // 桌面端优先走 preload 的 Electron 原生对话框；它直接调用
@@ -687,11 +824,8 @@ window.__ModuleLoader__.load({
             }
           }
           if (!picked) return
-          const updated = await request('/settings', postJson({ saveDir: picked }))
-          setState(updated)
-          pathRef.current = ''
-          await loadListing('')
-          flash(translate('settings.updated'))
+          const changed = await applySaveDir(picked)
+          if (changed) setDirBrowser(null)
         })
       }
 
@@ -828,7 +962,7 @@ window.__ModuleLoader__.load({
         {
           type: 'button',
           className: 'fr-save-row',
-          onClick: changeSaveDir,
+          onClick: openSaveDirPicker,
           disabled: busy,
           title: state ? state.saveDir : '',
         },
@@ -924,6 +1058,17 @@ window.__ModuleLoader__.load({
             )
           : null,
         dialog ? h(Dialog, { dialog, translate, onCancel: closeDialog, onSubmit: submitDialog }) : null,
+        dirBrowser
+          ? h(DirBrowserDialog, {
+              browser: dirBrowser,
+              translate,
+              busy,
+              onNavigate: loadBrowseDir,
+              onChoose: chooseBrowseDir,
+              onNative: chooseNativeDir,
+              onCancel: () => setDirBrowser(null),
+            })
+          : null,
       )
     }
 
