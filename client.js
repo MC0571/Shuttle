@@ -87,6 +87,8 @@ window.__ModuleLoader__.load({
       'files.sortType': '类型',
       'files.noMatch': '没有匹配的文件',
       'files.more': '更多操作',
+      'files.today': '今天',
+      'files.yesterday': '昨天',
       'settings.title': '保存目录',
       'settings.saveDir': '保存到',
       'settings.change': '修改',
@@ -171,6 +173,8 @@ window.__ModuleLoader__.load({
       'files.sortType': 'Type',
       'files.noMatch': 'No matching files',
       'files.more': 'More actions',
+      'files.today': 'Today',
+      'files.yesterday': 'Yesterday',
       'settings.title': 'Save folder',
       'settings.saveDir': 'Save to',
       'settings.change': 'Change',
@@ -344,7 +348,7 @@ window.__ModuleLoader__.load({
       }
     }
 
-    function formatFileTime(milliseconds) {
+    function formatFileTime(milliseconds, translate) {
       const value = Number(milliseconds)
       if (!Number.isFinite(value) || value <= 0) return ''
       const date = new Date(value)
@@ -354,10 +358,11 @@ window.__ModuleLoader__.load({
       const clock = `${pad(date.getHours())}:${pad(date.getMinutes())}`
       const sameDay = (left, right) =>
         left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth() && left.getDate() === right.getDate()
-      if (sameDay(date, now)) return `今天 ${clock}`
+      if (sameDay(date, now)) return `${translate('files.today')} ${clock}`
       const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
-      if (sameDay(date, yesterday)) return `昨天 ${clock}`
-      if (date.getFullYear() === now.getFullYear()) return `${date.getMonth() + 1}月${date.getDate()}日 ${clock}`
+      if (sameDay(date, yesterday)) return `${translate('files.yesterday')} ${clock}`
+      const monthDay = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date)
+      if (date.getFullYear() === now.getFullYear()) return `${monthDay} ${clock}`
       return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
     }
 
@@ -514,8 +519,10 @@ window.__ModuleLoader__.load({
       const [dialog, setDialog] = React.useState(null)
       const [search, setSearch] = React.useState('')
       const [sort, setSort] = React.useState(() => {
+        const allowed = ['time-desc', 'time-asc', 'name-asc', 'name-desc', 'size-desc', 'size-asc', 'type-asc']
         try {
-          return localStorage.getItem('shuttle.listSort') || 'time-desc'
+          const saved = localStorage.getItem('shuttle.listSort')
+          return allowed.includes(saved) ? saved : 'time-desc'
         } catch {
           return 'time-desc'
         }
@@ -861,7 +868,7 @@ window.__ModuleLoader__.load({
             ? h('button', { type: 'button', className: 'fr-row-name fr-row-link', onClick: () => navigateTo(item.path), title: item.name }, item.name)
             : h('span', { className: 'fr-row-name', title: item.name }, item.name),
           h('span', { className: 'fr-row-meta' }, item.kind === 'directory' ? '' : formatSize(item.size)),
-          h('span', { className: 'fr-row-time', title: formatTime(item.mtime) }, formatFileTime(item.mtime)),
+          h('span', { className: 'fr-row-time', title: formatTime(item.mtime) }, formatFileTime(item.mtime, translate)),
           h(
             'span',
             { className: 'fr-row-actions' },
