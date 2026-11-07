@@ -345,6 +345,12 @@ window.__ModuleLoader__.load({
 .fr-banner { max-width: 1120px; margin: 0 auto 12px; padding: 9px 12px; border-radius: 9px; font-size: 12.5px; background: var(--dsw-alias-bg-layer-1); }
 .fr-banner-error { color: var(--dsw-alias-state-error-primary); border: 1px solid var(--dsw-alias-state-error-primary); }
 .fr-banner-ok { color: var(--dsw-alias-state-success-primary); border: 1px solid var(--dsw-alias-state-success-primary); }
+.fr-toast { position: fixed; top: 18px; right: 24px; z-index: 90; max-width: 360px; margin: 0; padding: 10px 14px;
+  background: var(--dsw-alias-bg-overlay); border: 1px solid var(--dsw-alias-state-success-primary); color: var(--dsw-alias-label-primary);
+  border-radius: 10px; box-shadow: 0 10px 32px rgba(15, 23, 42, .20); font-size: 12.5px; pointer-events: none;
+  animation: frToastIn .18s ease-out; }
+@keyframes frToastIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 600px) { .fr-toast { left: 12px; right: 12px; top: 12px; max-width: none; } }
 .fr-overlay { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 24px; background: rgba(15, 23, 42, .36); }
 .fr-dialog { width: min(440px, calc(100vw - 48px)); background: var(--dsw-alias-bg-overlay); color: var(--dsw-alias-label-primary); border: 1px solid var(--dsw-alias-border-l1); border-radius: 14px; padding: 20px; box-shadow: 0 18px 60px rgba(15, 23, 42, .28); }
 .fr-dialog h3 { margin: 0 0 8px; font-size: 15px; font-weight: 650; }
@@ -1464,7 +1470,7 @@ window.__ModuleLoader__.load({
           ),
         ),
         error ? h('div', { className: 'fr-banner fr-banner-error' }, error) : null,
-        notice ? h('div', { className: 'fr-banner fr-banner-ok' }, notice) : null,
+        notice ? h('div', { className: 'fr-banner fr-banner-ok fr-toast' }, notice) : null,
         !state && !error ? h('div', { className: 'fr-empty' }, translate('common.loading')) : null,
         state
           ? h(
