@@ -253,7 +253,9 @@ window.__ModuleLoader__.load({
 .fr-row { display: grid; grid-template-columns: 18px minmax(0, 1fr) 72px 102px 30px; align-items: center; gap: 10px; padding: 8px 6px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
 .fr-row:hover { background: var(--dsw-alias-bg-layer-2); }
 .fr-row-icon { font-size: 13px; text-align: center; }
-.fr-row-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; overflow-wrap: anywhere; font-size: 13px; line-height: 1.35; max-height: 2.7em; }
+.fr-row-name { display: flex; align-items: flex-start; gap: 5px; min-width: 0; overflow: hidden; font-size: 13px; line-height: 1.35; }
+.fr-row-name-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; overflow-wrap: anywhere; max-height: 2.7em; }
+.fr-row-ext { flex: none; margin-top: 1px; padding: 0 4px; border-radius: 4px; background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-secondary); font-size: 9.5px; line-height: 1.45; text-transform: uppercase; }
 .fr-row-link { appearance: none; border: none; background: none; text-align: left; padding: 0; color: var(--dsw-alias-brand-primary); cursor: pointer; font-size: 13px; font-family: inherit; }
 .fr-row-link:hover { text-decoration: underline; }
 .fr-row-meta, .fr-row-time { font-size: 11.5px; color: var(--dsw-alias-label-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -850,6 +852,15 @@ window.__ModuleLoader__.load({
         }
       }
 
+      const renderName = (item) => {
+        const extension = item.kind === 'directory' ? '' : fileExtension(item.name)
+        const stem = extension ? item.name.slice(0, item.name.length - extension.length - 1) : item.name
+        return [
+          h('span', { key: 'text', className: 'fr-row-name-text' }, stem || item.name),
+          extension ? h('span', { key: 'ext', className: 'fr-row-ext' }, extension) : null,
+        ]
+      }
+
       const openRowMenu = (event, item) => {
         const rect = event.currentTarget.getBoundingClientRect()
         const width = 168
@@ -865,8 +876,8 @@ window.__ModuleLoader__.load({
           { key: item.path, className: 'fr-row' },
           h('span', { className: 'fr-row-icon', 'aria-hidden': true }, item.kind === 'directory' ? '📁' : '📄'),
           item.kind === 'directory'
-            ? h('button', { type: 'button', className: 'fr-row-name fr-row-link', onClick: () => navigateTo(item.path), title: item.name }, item.name)
-            : h('span', { className: 'fr-row-name', title: item.name }, item.name),
+            ? h('button', { type: 'button', className: 'fr-row-name fr-row-link', onClick: () => navigateTo(item.path), title: item.name }, renderName(item))
+            : h('span', { className: 'fr-row-name', title: item.name }, renderName(item)),
           h('span', { className: 'fr-row-meta' }, item.kind === 'directory' ? '' : formatSize(item.size)),
           h('span', { className: 'fr-row-time', title: formatTime(item.mtime) }, formatFileTime(item.mtime, translate)),
           h(
