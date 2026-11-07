@@ -396,24 +396,42 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
 
   function bindInput(input, label) {
     if (!input) return;
-    var lastHandledAt = 0;
+    var lastSignature = '';
+    var batchRemaining = 0;
+
+    function signatureOf(files) {
+      var parts = [];
+      for (var index = 0; index < files.length; index += 1) {
+        var file = files[index];
+        parts.push((file.name || '') + ':' + (file.size || 0) + ':' + (file.lastModified || 0));
+      }
+      return parts.join('|');
+    }
 
     function handle(source) {
       var files = input.files ? Array.prototype.slice.call(input.files) : [];
       if (!files.length) {
-        sendEvent('empty', { source: source, label: label });
-        showPickError('选择器返回了 0 个文件（' + (label || '文件') + '）。');
-        try { input.value = ''; } catch (error) { /* 忽略 */ }
+        if (source !== 'focus') {
+          sendEvent('empty', { source: source, label: label });
+          showPickError('选择器返回了 0 个文件（' + (label || '文件') + '）。');
+        }
         return;
       }
+      var signature = signatureOf(files);
+      if (signature === lastSignature) {
+        // input+change 双事件，或锁屏/切后台回来后 focus 回读到同一批文件：
+        // 不再入队，避免同一个文件被反复加入待传列表。
+        if (source === 'focus' || batchRemaining > 0) return;
+      }
+      lastSignature = signature;
       try { sessionStorage.removeItem('shuttle.pickOpened'); } catch (error) { /* 忽略 */ }
       sendEvent('pick', { source: source, count: files.length, label: label });
       hidePickError();
-      var remaining = files.length;
+      batchRemaining = files.length;
       enqueue(files, function () {
-        remaining -= 1;
+        batchRemaining -= 1;
         // 等这一批发送完再清空：部分 WebView 在清空 input 后会让 File 对象失效。
-        if (remaining <= 0) {
+        if (batchRemaining <= 0) {
           try { input.value = ''; } catch (error) { /* 忽略 */ }
         }
       });
@@ -424,24 +442,17 @@ export function renderPhonePage({ token, hostName, saveDirName, wechat = false }
       sendEvent('open', { label: label });
     });
     input.addEventListener('change', function () {
-      if (Date.now() - lastHandledAt < 800) return;
-      lastHandledAt = Date.now();
       handle('change');
     });
     input.addEventListener('input', function () {
-      if (Date.now() - lastHandledAt < 800) return;
-      lastHandledAt = Date.now();
       handle('input');
     });
     window.addEventListener('focus', function () {
-      // 部分 WebView 不派发 change：选择器关闭、页面回到前台时主动读取一次。
+      // 部分 WebView 不派发 change：页面回到前台时主动读取一次；同一批文件会被去重。
       setTimeout(function () {
         if (!input.files || input.files.length === 0) return;
-        if (Date.now() - lastHandledAt < 800) return;
-        lastHandledAt = Date.now();
-        sendEvent('focus', { count: input.files.length, label: label });
         handle('focus');
-      }, 250);
+      }, 300);
     });
   }
 
