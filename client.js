@@ -670,14 +670,21 @@ window.__ModuleLoader__.load({
       const changeSaveDir = () => {
         if (!state) return
         act(async () => {
-          const workspace = panelCtx && typeof panelCtx.get === 'function' ? panelCtx.get('uiWorkspace') : null
           let picked = null
-          if (workspace && typeof workspace.pickDirectory === 'function') {
-            picked = await workspace.pickDirectory()
+          // 桌面端优先走 preload 的 Electron 原生对话框；它直接调用
+          // dialog.showOpenDialog，比 Host 的 osascript 目录选择器快很多。
+          const desktopPicker = typeof globalThis !== 'undefined' ? globalThis.__DSH_DIRECTORY_PICKER__ : null
+          if (desktopPicker && typeof desktopPicker.pick === 'function') {
+            picked = await desktopPicker.pick()
           } else {
-            const result = await request('/pick-dir', { method: 'POST' })
-            if (!result.available) throw new Error(translate('settings.unavailable'))
-            picked = result.path
+            const workspace = panelCtx && typeof panelCtx.get === 'function' ? panelCtx.get('uiWorkspace') : null
+            if (workspace && typeof workspace.pickDirectory === 'function') {
+              picked = await workspace.pickDirectory()
+            } else {
+              const result = await request('/pick-dir', { method: 'POST' })
+              if (!result.available) throw new Error(translate('settings.unavailable'))
+              picked = result.path
+            }
           }
           if (!picked) return
           const updated = await request('/settings', postJson({ saveDir: picked }))

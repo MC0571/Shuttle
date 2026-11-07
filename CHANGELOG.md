@@ -2,6 +2,11 @@
 
 遵循 [Semantic Versioning](https://semver.org/)；每个标题对应一个 Git tag `v<version>`。
 
+## [0.1.23] - 2026-11-08
+
+### Fixed
+- 点击「保存目录」后系统文件夹选择器打开过慢：桌面端改为优先使用 preload 暴露的 `window.__DSH_DIRECTORY_PICKER__.pick()`（Electron `dialog.showOpenDialog`，直接挂在当前窗口），仅在浏览器等无该桥接的环境回退到 `uiWorkspace.pickDirectory()` / Host 目录服务。
+
 ## [0.1.22] - 2026-11-08
 
 ### Changed
