@@ -103,6 +103,7 @@ window.__ModuleLoader__.load({
       'files.up': '上一级',
       'files.groupFolders': '文件夹',
       'files.clearSearch': '清空搜索',
+      'files.newBadge': '新',
       'settings.title': '保存目录',
       'settings.saveDir': '保存到',
       'settings.change': '修改',
@@ -203,6 +204,7 @@ window.__ModuleLoader__.load({
       'files.up': 'Up',
       'files.groupFolders': 'Folders',
       'files.clearSearch': 'Clear search',
+      'files.newBadge': 'NEW',
       'settings.title': 'Save folder',
       'settings.saveDir': 'Save to',
       'settings.change': 'Change',
@@ -247,8 +249,10 @@ window.__ModuleLoader__.load({
 .fr-btn-icon { display: inline-flex; align-items: center; }
 .fr-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
 .fr-card h2 { margin: 0; font-size: 14px; font-weight: 650; letter-spacing: .01em; }
-.fr-qr-box { display: flex; justify-content: center; padding: 14px; margin-bottom: 14px; border-radius: 12px; background: var(--dsw-alias-bg-base); border: 1px solid var(--dsw-alias-border-l1); }
-.fr-qr { width: 100%; max-width: 236px; height: auto; display: block; border-radius: 10px; background: #fff; }
+.fr-qr-box { display: flex; justify-content: center; padding: 10px; margin-bottom: 10px; border-radius: 12px; background: var(--dsw-alias-bg-base); border: 1px solid var(--dsw-alias-border-l1); }
+.fr-qr { width: 100%; max-width: 200px; height: auto; display: block; border-radius: 10px; background: #fff; }
+.fr-wifi-card { padding: 10px 12px; }
+.fr-wifi-card .fr-qr-hint { margin: 0; padding: 0; border: none; background: none; }
 .fr-qr-empty { min-height: 180px; align-items: center; color: var(--dsw-alias-label-secondary); font-size: 12.5px; text-align: center; }
 .fr-qr-hint { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; padding: 10px 12px; border-radius: 10px;
   background: linear-gradient(135deg, rgba(37, 99, 235, .12), rgba(96, 165, 250, .08)); border: 1px solid rgba(37, 99, 235, .22);
@@ -283,8 +287,9 @@ window.__ModuleLoader__.load({
 .fr-row { display: grid; grid-template-columns: 26px 34px minmax(0, 1fr) 72px 102px 30px; align-items: center; gap: 10px; padding: 8px 6px; height: 56px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
 .fr-row-file { cursor: pointer; }
 .fr-row:hover { background: var(--dsw-alias-bg-layer-2); }
-.fr-row-new { animation: frNewRow 3.2s ease-out; }
-@keyframes frNewRow { 0% { background: rgba(37, 99, 235, .16); } 100% { background: transparent; } }
+.fr-row-new { animation: frNewRow 3.6s ease-out; }
+@keyframes frNewRow { 0% { background: rgba(37, 99, 235, .20); box-shadow: inset 3px 0 0 var(--dsw-alias-brand-primary); } 55% { background: rgba(37, 99, 235, .10); } 100% { background: transparent; box-shadow: none; } }
+.fr-new-badge { flex: none; align-self: center; padding: 1px 4px; border-radius: 4px; background: var(--dsw-alias-brand-primary); color: #fff; font-size: 9px; line-height: 1.4; font-weight: 700; letter-spacing: .02em; }
 .fr-row-busy { opacity: .55; }
 .fr-row-icon { width: 32px; height: 32px; display: grid; place-items: center; color: var(--dsw-alias-label-secondary); }
 .fr-row-icon svg { display: block; }
@@ -1142,7 +1147,12 @@ window.__ModuleLoader__.load({
             : h('span', { className: 'fr-row-icon' }, h(FileTypeIcon, { name: item.name, kind: item.kind, size: 20 })),
           item.kind === 'directory'
             ? h('button', { type: 'button', className: 'fr-row-name fr-row-link', onClick: () => navigateTo(item.path), title: item.name }, renderName(item))
-            : h('span', { className: 'fr-row-name', title: item.name }, renderName(item)),
+            : h(
+                'span',
+                { className: 'fr-row-name', title: item.name },
+                renderName(item),
+                freshPath === item.path ? h('span', { className: 'fr-new-badge' }, translate('files.newBadge')) : null,
+              ),
           h('span', { className: 'fr-row-meta' }, item.kind === 'directory' ? '' : formatSize(item.size)),
           h('span', { className: 'fr-row-time', title: formatTime(item.mtime) }, formatFileTime(item.mtime, translate)),
           h(
@@ -1244,21 +1254,19 @@ window.__ModuleLoader__.load({
         state && state.url
           ? h('div', { className: 'fr-qr-box' }, h('img', { className: 'fr-qr', src: state.qrSvgUrl, alt: translate('qr.alt') }))
           : h('div', { className: 'fr-qr-box fr-qr-empty' }, state && state.lanError ? state.lanError : translate('qr.wait')),
-        h('div', { className: 'fr-qr-hint' }, wifiGlyph, h('span', null, translate('network.hint'))),
         state && !state.url ? h('p', { className: 'fr-hint fr-warn' }, (state && state.lanError) || translate('qr.noNetwork')) : null,
         h(
           'div',
-          { className: 'fr-actions', style: { marginTop: '12px' } },
-          h('button', { type: 'button', className: 'fr-btn fr-btn-primary', onClick: copyLink, disabled: !state || !state.url }, translate('common.copy')),
+          { className: 'fr-actions', style: { marginTop: '10px' } },
+          h('button', { type: 'button', className: 'fr-btn', onClick: copyLink, disabled: !state || !state.url }, translate('common.copy')),
           h('button', { type: 'button', className: 'fr-btn', onClick: rotateToken, disabled: busy || !state || !state.url }, translate('qr.reset')),
         ),
-        h(
-          'p',
-          { className: 'fr-last' },
-          state && state.lastUpload
-            ? translate('qr.last').replace('{name}', state.lastUpload.name).replace('{size}', formatSize(state.lastUpload.size))
-            : translate('qr.never'),
-        ),
+      )
+
+      const wifiCard = h(
+        'section',
+        { className: 'fr-card fr-wifi-card' },
+        h('div', { className: 'fr-qr-hint' }, wifiGlyph, h('span', null, translate('network.hint'))),
       )
 
       const diagnosticsBlock = h(
@@ -1466,6 +1474,7 @@ window.__ModuleLoader__.load({
                 'div',
                 { className: 'fr-side' },
                 qrCard,
+                wifiCard,
                 settingsCard,
                 h(
                   'section',
