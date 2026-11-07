@@ -63,6 +63,7 @@ window.__ModuleLoader__.load({
       'device.browser': '浏览器',
       'qr.noNetwork': '没有找到局域网地址，请先把电脑连上 WiFi 或局域网。',
       'network.label': '网络接口',
+      'network.cardTitle': '网络与诊断',
       'network.hint': '选择与手机处于同一 WiFi 的地址。',
       'files.title': '已接收文件',
       'files.root': '保存目录',
@@ -135,6 +136,7 @@ window.__ModuleLoader__.load({
       'device.browser': 'Browser',
       'qr.noNetwork': 'No local network address found. Connect this computer to Wi-Fi or a LAN.',
       'network.label': 'Network interface',
+      'network.cardTitle': 'Network & diagnostics',
       'network.hint': 'Pick the address on the same Wi-Fi as your phone.',
       'files.title': 'Received files',
       'files.root': 'Save folder',
@@ -194,6 +196,19 @@ window.__ModuleLoader__.load({
 .fr-qr-box { display: flex; justify-content: center; padding: 14px; margin-bottom: 14px; border-radius: 12px; background: var(--dsw-alias-bg-base); border: 1px solid var(--dsw-alias-border-l1); }
 .fr-qr { width: 100%; max-width: 236px; height: auto; display: block; border-radius: 10px; background: #fff; }
 .fr-qr-empty { min-height: 180px; align-items: center; color: var(--dsw-alias-label-secondary); font-size: 12.5px; text-align: center; }
+.fr-qr-hint { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; padding: 10px 12px; border-radius: 10px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, .12), rgba(96, 165, 250, .08)); border: 1px solid rgba(37, 99, 235, .22);
+  color: var(--dsw-alias-brand-primary); font-size: 12.5px; font-weight: 600; line-height: 1.45; }
+.fr-qr-hint svg { flex: none; margin-top: 1px; }
+.fr-save-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 13px; border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 12px; background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); font-family: inherit; font-size: 13px;
+  text-align: left; cursor: pointer; }
+.fr-save-row:hover:not(:disabled) { border-color: var(--dsw-alias-border-l2); background: var(--dsw-alias-bg-layer-2); }
+.fr-save-row:disabled { opacity: .5; cursor: default; }
+.fr-save-label { flex: none; color: var(--dsw-alias-label-secondary); font-size: 12.5px; }
+.fr-save-path-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; font-weight: 600; }
+.fr-save-chevron { flex: none; color: var(--dsw-alias-label-secondary); font-size: 18px; line-height: 1; }
 .fr-field { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--dsw-alias-label-secondary); margin-bottom: 6px; }
 .fr-field select { flex: 1; min-width: 0; appearance: none; border: 1px solid var(--dsw-alias-border-l1); background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-primary); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; font-family: inherit; }
 .fr-hint { margin: 0 0 10px; font-size: 12px; color: var(--dsw-alias-label-secondary); }
@@ -712,14 +727,14 @@ window.__ModuleLoader__.load({
           ),
         )
 
-      const visitDevice =
-        state && state.lastVisit
-          ? state.lastVisit.wechat
-            ? translate('device.wechat')
-            : state.lastVisit.mobile
-              ? translate('device.mobile')
-              : translate('device.browser')
-          : ''
+      const wifiGlyph = h(
+        'svg',
+        { width: 15, height: 15, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', 'aria-hidden': true },
+        h('path', { d: 'M2.5 8.6a15.2 15.2 0 0 1 19 0' }),
+        h('path', { d: 'M5.6 12.1a10.4 10.4 0 0 1 12.8 0' }),
+        h('path', { d: 'M8.8 15.5a5.6 5.6 0 0 1 6.4 0' }),
+        h('circle', { cx: 12, cy: 19, r: 1.1, fill: 'currentColor', stroke: 'none' }),
+      )
 
       const qrCard = h(
         'section',
@@ -728,6 +743,46 @@ window.__ModuleLoader__.load({
         state && state.url
           ? h('div', { className: 'fr-qr-box' }, h('img', { className: 'fr-qr', src: state.qrSvgUrl, alt: translate('qr.alt') }))
           : h('div', { className: 'fr-qr-box fr-qr-empty' }, state && state.lanError ? state.lanError : translate('qr.wait')),
+        h('div', { className: 'fr-qr-hint' }, wifiGlyph, h('span', null, translate('network.hint'))),
+        state && !state.url ? h('p', { className: 'fr-hint fr-warn' }, (state && state.lanError) || translate('qr.noNetwork')) : null,
+        h(
+          'div',
+          { className: 'fr-actions', style: { marginTop: '12px' } },
+          h('button', { type: 'button', className: 'fr-btn fr-btn-primary', onClick: copyLink, disabled: !state || !state.url }, translate('common.copy')),
+          h('button', { type: 'button', className: 'fr-btn', onClick: rotateToken, disabled: busy || !state || !state.url }, translate('qr.reset')),
+        ),
+        h(
+          'p',
+          { className: 'fr-last' },
+          state && state.lastUpload
+            ? translate('qr.last').replace('{name}', state.lastUpload.name).replace('{size}', formatSize(state.lastUpload.size))
+            : translate('qr.never'),
+        ),
+      )
+
+      const diagnosticsBlock = h(
+        'details',
+        { className: 'fr-diag' },
+        h('summary', null, translate('diag.title')),
+        h(
+          'ul',
+          null,
+          state && state.pageViews > 1 ? h('li', { key: 'views' }, translate('diag.pageViews').replace('{n}', String(state.pageViews))) : null,
+          state && Array.isArray(state.diagnostics) && state.diagnostics.length > 0
+            ? state.diagnostics
+                .slice(-8)
+                .reverse()
+                .map((event, index) =>
+                  h('li', { key: `${event && event.at}-${index}` }, `${formatTime(event && event.at)} · ${formatDiagnostic(event, translate)}`),
+                )
+            : h('li', { key: 'none' }, translate('diag.none')),
+        ),
+      )
+
+      const networkCard = h(
+        'section',
+        { className: 'fr-card fr-network' },
+        h('div', { className: 'fr-card-head' }, h('h2', null, translate('network.cardTitle'))),
         h(
           'label',
           { className: 'fr-field' },
@@ -739,49 +794,7 @@ window.__ModuleLoader__.load({
             addresses.length === 0 ? h('option', { value: '' }, '—') : null,
           ),
         ),
-        h('p', { className: 'fr-hint' }, translate('network.hint')),
-        state && state.url
-          ? h('div', { className: 'fr-url', title: state.url }, state.url)
-          : h('p', { className: 'fr-hint fr-warn' }, (state && state.lanError) || translate('qr.noNetwork')),
-        h(
-          'div',
-          { className: 'fr-actions' },
-          h('button', { type: 'button', className: 'fr-btn fr-btn-primary', onClick: copyLink, disabled: !state || !state.url }, translate('common.copy')),
-          h('button', { type: 'button', className: 'fr-btn', onClick: rotateToken, disabled: busy || !state || !state.url }, translate('qr.reset')),
-        ),
-        h('p', { className: 'fr-hint', style: { marginTop: '12px' } }, translate('qr.hint')),
-        h(
-          'p',
-          { className: 'fr-last' },
-          state && state.lastUpload
-            ? translate('qr.last').replace('{name}', state.lastUpload.name).replace('{size}', formatSize(state.lastUpload.size))
-            : translate('qr.never'),
-        ),
-        h(
-          'p',
-          { className: 'fr-hint', style: { margin: '6px 0 0' } },
-          state && state.lastVisit
-            ? translate('qr.lastVisit').replace('{device}', visitDevice).replace('{ip}', state.lastVisit.ip || '')
-            : translate('qr.neverVisit'),
-        ),
-        h(
-          'details',
-          { className: 'fr-diag' },
-          h('summary', null, translate('diag.title')),
-          h(
-            'ul',
-            null,
-            state && state.pageViews > 1 ? h('li', { key: 'views' }, translate('diag.pageViews').replace('{n}', String(state.pageViews))) : null,
-            state && Array.isArray(state.diagnostics) && state.diagnostics.length > 0
-              ? state.diagnostics
-                  .slice(-8)
-                  .reverse()
-                  .map((event, index) =>
-                    h('li', { key: `${event && event.at}-${index}` }, `${formatTime(event && event.at)} · ${formatDiagnostic(event, translate)}`),
-                  )
-              : h('li', { key: 'none' }, translate('diag.none')),
-          ),
-        ),
+        diagnosticsBlock,
         state && state.pickerAborted && Date.now() - state.pickerAborted.abortedAt < 10 * 60 * 1000
           ? h('p', { className: 'fr-hint fr-warn', style: { margin: '8px 0 0' } }, translate('diag.aborted'))
           : null,
@@ -804,21 +817,18 @@ window.__ModuleLoader__.load({
       )
 
       const settingsCard = h(
-        'section',
-        { className: 'fr-card' },
-        h('div', { className: 'fr-card-head' }, h('h2', null, translate('settings.title'))),
-        h(
-          'div',
-          { className: 'fr-save-path' },
-          h('span', { className: 'fr-save-icon' }, folderGlyph),
-          h('span', { className: 'fr-save-path-text', title: state ? state.saveDir : '' }, state ? state.saveDirLabel : ''),
-        ),
-        h(
-          'button',
-          { type: 'button', className: 'fr-btn fr-btn-primary fr-btn-block', onClick: changeSaveDir, disabled: busy },
-          h('span', { className: 'fr-btn-icon' }, folderGlyph),
-          translate('settings.pick'),
-        ),
+        'button',
+        {
+          type: 'button',
+          className: 'fr-save-row',
+          onClick: changeSaveDir,
+          disabled: busy,
+          title: state ? state.saveDir : '',
+        },
+        h('span', { className: 'fr-save-icon' }, folderGlyph),
+        h('span', { className: 'fr-save-label' }, translate('settings.title')),
+        h('span', { className: 'fr-save-path-text' }, state ? state.saveDirLabel : ''),
+        h('span', { className: 'fr-save-chevron' }, '›'),
       )
 
       const filesCard = h(
@@ -901,6 +911,7 @@ window.__ModuleLoader__.load({
                     h('li', null, translate('tips.token')),
                   ),
                 ),
+                networkCard,
               ),
               h('div', { className: 'fr-main' }, filesCard),
             )
