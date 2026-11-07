@@ -76,6 +76,7 @@ window.__ModuleLoader__.load({
       'files.deleteDirConfirm': '删除空文件夹「{name}」？',
       'files.received': '收到新文件：{name}',
       'files.count': '{dirs} 个文件夹 · {files} 个文件',
+      'files.countFiles': '{files} 个接收文件',
       'files.search': '搜索文件名…',
       'files.sort': '排序',
       'files.sortTimeDesc': '最新优先',
@@ -103,6 +104,11 @@ window.__ModuleLoader__.load({
       'files.up': '上一级',
       'files.groupFolders': '文件夹',
       'files.clearSearch': '清空搜索',
+      'files.back': '返回接收列表',
+      'files.colSource': '来源',
+      'files.browseTitle': '浏览文件夹',
+      'files.filterFolder': '筛选文件夹',
+      'files.allFolders': '全部文件夹',
       'files.newBadge': '新',
       'settings.title': '保存目录',
       'settings.saveDir': '保存到',
@@ -177,6 +183,7 @@ window.__ModuleLoader__.load({
       'files.deleteDirConfirm': 'Delete the empty folder "{name}"?',
       'files.received': 'New file received: {name}',
       'files.count': '{dirs} folders · {files} files',
+      'files.countFiles': '{files} received files',
       'files.search': 'Search file name…',
       'files.sort': 'Sort',
       'files.sortTimeDesc': 'Newest first',
@@ -204,6 +211,11 @@ window.__ModuleLoader__.load({
       'files.up': 'Up',
       'files.groupFolders': 'Folders',
       'files.clearSearch': 'Clear search',
+      'files.back': 'Back to received list',
+      'files.colSource': 'From',
+      'files.browseTitle': 'Browse folder',
+      'files.filterFolder': 'Filter folder',
+      'files.allFolders': 'All folders',
       'files.newBadge': 'NEW',
       'settings.title': 'Save folder',
       'settings.saveDir': 'Save to',
@@ -241,6 +253,23 @@ window.__ModuleLoader__.load({
 .fr-side { display: flex; flex-direction: column; gap: 16px; min-height: 0; overflow: auto; padding-right: 2px; }
 .fr-main { display: flex; flex-direction: column; min-height: 0; }
 .fr-card-files { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.fr-folders-wrap { flex: none; margin-bottom: 4px; }
+.fr-folders-label { margin: 0 0 8px 2px; font-size: 11.5px; font-weight: 600; color: var(--dsw-alias-label-secondary); letter-spacing: .02em; }
+.fr-folders { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.fr-folder-card { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px 12px; text-align: left; border: 1px solid var(--dsw-alias-border-l1); border-radius: 12px; background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); font-family: inherit; cursor: pointer; }
+.fr-folder-more { flex: none; width: 22px; height: 22px; border: none; border-radius: 6px; background: transparent; color: var(--dsw-alias-label-secondary); font-size: 15px; line-height: 1; cursor: pointer; }
+.fr-folder-more:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+.fr-folder-card:hover { border-color: var(--dsw-alias-border-l2); background: var(--dsw-alias-bg-layer-2); }
+.fr-folder-icon { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(59, 130, 246, .12); }
+.fr-folder-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.fr-folder-name { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fr-folder-time { font-size: 10.5px; color: var(--dsw-alias-label-secondary); white-space: nowrap; }
+.fr-folder-new { flex: none; padding: 1px 4px; border-radius: 4px; background: var(--dsw-alias-brand-primary); color: #fff; font-size: 9px; font-weight: 700; line-height: 1.4; }
+.fr-folder-chevron { flex: none; color: var(--dsw-alias-label-secondary); font-size: 17px; line-height: 1; }
+.fr-card-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.fr-card-title h2 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fr-back { appearance: none; border: 1px solid var(--dsw-alias-border-l1); background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font-size: 16px; line-height: 1; cursor: pointer; font-family: inherit; }
+.fr-back:hover { background: var(--dsw-alias-bg-layer-2); border-color: var(--dsw-alias-border-l2); }
 .fr-card { background: var(--dsw-alias-bg-layer-1); border: 1px solid var(--dsw-alias-border-l1); border-radius: 14px; padding: 18px; min-width: 0; }
 .fr-save-path { display: flex; align-items: center; gap: 10px; background: var(--dsw-alias-bg-base); border: 1px solid var(--dsw-alias-border-l1); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
 .fr-save-icon { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: rgba(37, 99, 235, .12); color: var(--dsw-alias-brand-primary); }
@@ -282,10 +311,14 @@ window.__ModuleLoader__.load({
 .fr-crumb:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
 .fr-crumb-sep { color: var(--dsw-alias-border-l2); padding: 0 1px; }
 .fr-list { border-top: 1px solid var(--dsw-alias-border-l1); flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; position: relative; }
-.fr-table-head { display: grid; grid-template-columns: 26px 18px minmax(0, 1fr) 72px 102px 30px; align-items: center; gap: 10px; padding: 7px 6px; border-top: 1px solid var(--dsw-alias-border-l1); border-bottom: 1px solid var(--dsw-alias-border-l1); font-size: 11px; color: var(--dsw-alias-label-secondary); flex: none; }
+.fr-table-head { display: grid; grid-template-columns: 26px 34px minmax(0, 1fr) 84px 72px 102px 30px; align-items: center; gap: 10px; padding: 7px 6px; border-top: 1px solid var(--dsw-alias-border-l1); border-bottom: 1px solid var(--dsw-alias-border-l1); font-size: 11px; color: var(--dsw-alias-label-secondary); flex: none; }
 .fr-table-head span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fr-row { display: grid; grid-template-columns: 26px 34px minmax(0, 1fr) 72px 102px 30px; align-items: center; gap: 10px; padding: 8px 6px; height: 56px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
+.fr-row { display: grid; grid-template-columns: 26px 34px minmax(0, 1fr) 84px 72px 102px 30px; align-items: center; gap: 10px; padding: 8px 6px; height: 56px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
 .fr-row-file { cursor: pointer; }
+.fr-row-browse { grid-template-columns: 26px 34px minmax(0, 1fr) 72px 102px 30px; }
+.fr-row-browse .fr-row-source { display: none; }
+.fr-table-head-browse { grid-template-columns: 26px 34px minmax(0, 1fr) 72px 102px 30px; }
+.fr-table-head-browse .fr-col-source { display: none; }
 .fr-row:hover { background: var(--dsw-alias-bg-layer-2); }
 .fr-row-new { animation: frNewRow 3.6s ease-out; }
 @keyframes frNewRow { 0% { background: rgba(37, 99, 235, .20); box-shadow: inset 3px 0 0 var(--dsw-alias-brand-primary); } 55% { background: rgba(37, 99, 235, .10); } 100% { background: transparent; box-shadow: none; } }
@@ -313,7 +346,8 @@ window.__ModuleLoader__.load({
 .fr-row-ext { flex: none; margin-top: 1px; padding: 0 4px; border-radius: 4px; background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-secondary); font-size: 9.5px; line-height: 1.45; text-transform: uppercase; }
 .fr-row-link { appearance: none; border: none; background: none; text-align: left; padding: 0; color: var(--dsw-alias-brand-primary); cursor: pointer; font-size: 13px; font-family: inherit; }
 .fr-row-link:hover { text-decoration: underline; }
-.fr-row-meta, .fr-row-time { font-size: 11.5px; color: var(--dsw-alias-label-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fr-row-meta, .fr-row-time, .fr-row-source { font-size: 11.5px; color: var(--dsw-alias-label-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fr-row-source { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10.5px; }
 .fr-row-actions { display: flex; gap: 8px; justify-content: flex-end; position: relative; }
 .fr-more { appearance: none; border: none; background: none; color: var(--dsw-alias-label-secondary); font-size: 17px; line-height: 1; padding: 2px 4px; border-radius: 6px; cursor: pointer; font-family: inherit; }
 .fr-more:hover:not(:disabled) { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
@@ -323,6 +357,7 @@ window.__ModuleLoader__.load({
 .fr-search svg { flex: none; }
 .fr-search input { flex: 1; min-width: 0; appearance: none; border: none; outline: none; background: none; color: var(--dsw-alias-label-primary); font-family: inherit; font-size: 12.5px; padding: 0; }
 .fr-sort { flex: none; max-width: 130px; appearance: none; border: 1px solid var(--dsw-alias-border-l1); background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-secondary); border-radius: 8px; padding: 6px 8px; font-size: 12px; font-family: inherit; }
+.fr-filter { max-width: 150px; }
 .fr-menu-overlay { position: fixed; inset: 0; z-index: 70; }
 .fr-row-menu { position: fixed; z-index: 71; width: 168px; padding: 5px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 10px; background: var(--dsw-alias-bg-overlay); box-shadow: 0 12px 36px rgba(15, 23, 42, .22); }
 .fr-menu-item { display: block; width: 100%; padding: 8px 10px; border: none; border-radius: 7px; background: none; color: var(--dsw-alias-label-primary); font-family: inherit; font-size: 12.5px; text-align: left; cursor: pointer; }
@@ -366,7 +401,7 @@ window.__ModuleLoader__.load({
   .fr-card-files { min-height: 460px; }
   .fr-row { grid-template-columns: 24px 34px minmax(0, 1fr) 30px; height: 56px; }
   .fr-table-head { display: none; }
-  .fr-row-meta, .fr-row-time { display: none; }
+  .fr-row-meta, .fr-row-time, .fr-row-source { display: none; }
 }
 `
 
@@ -683,12 +718,15 @@ window.__ModuleLoader__.load({
 
       const [state, setState] = React.useState(null)
       const [listing, setListing] = React.useState(null)
+      const [mode, setMode] = React.useState('home')
+      const [folders, setFolders] = React.useState([])
       const [currentPath, setCurrentPath] = React.useState('')
       const [error, setError] = React.useState('')
       const [notice, setNotice] = React.useState('')
       const [busy, setBusy] = React.useState(false)
       const [dialog, setDialog] = React.useState(null)
       const [search, setSearch] = React.useState('')
+      const [folderFilter, setFolderFilter] = React.useState('all')
       const [rowBusy, setRowBusy] = React.useState('')
       const [freshPath, setFreshPath] = React.useState('')
       const [selectedPaths, setSelectedPaths] = React.useState([])
@@ -704,8 +742,17 @@ window.__ModuleLoader__.load({
         }
       })
       const [rowMenu, setRowMenu] = React.useState(null)
+      const [folderSeen, setFolderSeen] = React.useState(() => {
+        try {
+          const parsed = JSON.parse(localStorage.getItem('shuttle.folderSeen') || '{}')
+          return parsed && typeof parsed === 'object' ? parsed : {}
+        } catch {
+          return {}
+        }
+      })
 
       const pathRef = React.useRef('')
+      const modeRef = React.useRef('home')
       const listingSeq = React.useRef(0)
       const dialogAction = React.useRef(null)
       const noticeTimer = React.useRef(null)
@@ -758,6 +805,11 @@ window.__ModuleLoader__.load({
         return data
       }
 
+      const loadFolders = async () => {
+        const data = await request('/folders')
+        setFolders(Array.isArray(data.folders) ? data.folders : [])
+      }
+
       const loadListing = async (target) => {
         const wanted = typeof target === 'string' ? target : pathRef.current
         const seq = listingSeq.current + 1
@@ -771,11 +823,15 @@ window.__ModuleLoader__.load({
         return data
       }
 
-      // 同时刷新状态与当前目录；桌面端列表靠它自动更新。
+      // 同时刷新状态与当前视图；桌面端列表靠它自动更新。
       const refresh = React.useCallback(async (target) => {
         try {
           const next = await loadState()
-          await loadListing(typeof target === 'string' ? target : pathRef.current)
+          if (modeRef.current === 'browse') {
+            await loadListing(typeof target === 'string' ? target : pathRef.current)
+          } else {
+            await loadFolders()
+          }
           setError('')
           const uploadAt = next && next.lastUpload ? next.lastUpload.at : null
           if (uploadAt && uploadAt !== lastUploadAt.current) {
@@ -894,10 +950,46 @@ window.__ModuleLoader__.load({
         )
       }
 
+      const folderSeenKey = (target) => `${state && state.saveDir ? state.saveDir : ''}:${typeof target === 'string' ? target : ''}`
+
+      const markFolderSeen = (target) => {
+        const key = folderSeenKey(target)
+        const now = Date.now()
+        setFolderSeen((previous) => {
+          const next = { ...previous, [key]: now }
+          try {
+            localStorage.setItem('shuttle.folderSeen', JSON.stringify(next))
+          } catch {
+            // localStorage 不可用时只保留当前会话。
+          }
+          return next
+        })
+      }
+
       const navigateTo = (target) => {
+        modeRef.current = 'browse'
+        setMode('browse')
+        setListing(null)
+        setSearch('')
+        setSelectedPaths([])
         pathRef.current = target
+        setCurrentPath(target)
+        markFolderSeen(target)
         act(async () => {
           await loadListing(target)
+        })
+      }
+
+      const backToHome = () => {
+        modeRef.current = 'home'
+        setMode('home')
+        setListing(null)
+        pathRef.current = ''
+        setCurrentPath('')
+        setSearch('')
+        setSelectedPaths([])
+        act(async () => {
+          await refresh('')
         })
       }
 
@@ -911,8 +1003,10 @@ window.__ModuleLoader__.load({
           (name) => {
             if (!name || !name.trim()) return
             act(async () => {
-              await request('/mkdir', postJson({ path: pathRef.current, name }))
-              await loadListing(pathRef.current)
+              const target = modeRef.current === 'browse' ? pathRef.current : ''
+              await request('/mkdir', postJson({ path: target, name }))
+              if (modeRef.current === 'browse') await loadListing(target)
+              else await loadFolders()
             })
           },
         )
@@ -953,7 +1047,8 @@ window.__ModuleLoader__.load({
             act(async () => {
               await request('/delete', postJson({ paths }))
               setSelectedPaths([])
-              await loadListing(pathRef.current)
+              if (modeRef.current === 'browse') await loadListing(pathRef.current)
+              else await refresh('')
             })
           },
         )
@@ -970,7 +1065,8 @@ window.__ModuleLoader__.load({
             if (!next || !next.trim() || next.trim() === item.name) return
             runRowAction(item, async () => {
               await request('/rename', postJson({ path: item.path, name: next }))
-              await loadListing(pathRef.current)
+              if (modeRef.current === 'browse') await loadListing(pathRef.current)
+              else await refresh('')
             })
           },
         )
@@ -988,7 +1084,8 @@ window.__ModuleLoader__.load({
           () => {
             runRowAction(item, async () => {
               await request('/delete', postJson({ paths: [item.path] }))
-              await loadListing(pathRef.current)
+              if (modeRef.current === 'browse') await loadListing(pathRef.current)
+              else await refresh('')
             })
           },
         )
@@ -1034,8 +1131,15 @@ window.__ModuleLoader__.load({
           if (!picked) return
           const updated = await request('/settings', postJson({ saveDir: picked }))
           setState(updated)
+          modeRef.current = 'home'
+          setMode('home')
+          setListing(null)
           pathRef.current = ''
-          await loadListing('')
+          setCurrentPath('')
+          setFolderFilter('all')
+          setFolderSeen({})
+          try { localStorage.removeItem('shuttle.folderSeen') } catch { /* 忽略 */ }
+          await loadFolders()
           flash(translate('settings.updated'))
         })
       }
@@ -1045,11 +1149,24 @@ window.__ModuleLoader__.load({
         status === 'ready' ? translate('status.ready') : status === 'loading' ? translate('status.loading') : translate('status.degraded')
 
       const addresses = state && Array.isArray(state.addresses) ? state.addresses : []
-      const dirs = listing && Array.isArray(listing.dirs) ? listing.dirs : []
-      const files = listing && Array.isArray(listing.files) ? listing.files : []
+      const isHome = mode === 'home'
+      const receivedItems = isHome && state && Array.isArray(state.received)
+        ? state.received.map((record, index) => ({
+            ...record,
+            key: `${record.path || record.name}-${record.at || index}`,
+            kind: 'file',
+            mtime: record.at,
+            receivedAt: record.at,
+            sourceDir: record.dir || (state.defaultFolder || '默认'),
+          }))
+        : []
+      const dirs = isHome ? [] : (listing && Array.isArray(listing.dirs) ? listing.dirs : [])
+      const files = isHome ? receivedItems : (listing && Array.isArray(listing.files) ? listing.files : [])
 
       const searchNeedle = search.trim().toLowerCase()
       const matchesSearch = (item) => !searchNeedle || String(item.name || '').toLowerCase().includes(searchNeedle)
+      const folderFilterOptions = Array.from(new Set(receivedItems.map((item) => item.sourceDir).filter(Boolean))).sort((left, right) => left.localeCompare(right, 'zh-Hans-CN'))
+      const matchesFolderFilter = (item) => !isHome || folderFilter === 'all' || !item.sourceDir || item.sourceDir === folderFilter || item.sourceDir.startsWith(folderFilter + '/')
       const sortParts = String(sort || 'time-desc').split('-')
       const sortKey = sortParts[0] || 'time'
       const sortAscending = sortParts[1] === 'asc'
@@ -1069,7 +1186,7 @@ window.__ModuleLoader__.load({
       const visibleDirs = dirs.filter(matchesSearch).slice().sort((left, right) =>
         String(left.name || '').localeCompare(String(right.name || ''), 'zh-Hans-CN', { numeric: true, sensitivity: 'base' }),
       )
-      const visibleFiles = files.filter(matchesSearch).slice().sort(compareEntries)
+      const visibleFiles = files.filter((item) => matchesSearch(item) && matchesFolderFilter(item)).slice().sort(compareEntries)
       const visibleTotal = visibleDirs.length + visibleFiles.length
 
       React.useEffect(() => {
@@ -1078,7 +1195,7 @@ window.__ModuleLoader__.load({
           const next = previous.filter((path) => available.has(path))
           return next.length === previous.length ? previous : next
         })
-      }, [listing])
+      }, [listing, state])
 
       React.useEffect(() => {
         setScrollTop(0)
@@ -1121,7 +1238,7 @@ window.__ModuleLoader__.load({
           'div',
           {
             key: item.path,
-            className: 'fr-row' + (item.kind === 'file' ? ' fr-row-file' : '') + (freshPath === item.path ? ' fr-row-new' : '') + (isBusy ? ' fr-row-busy' : ''),
+            className: 'fr-row' + (!isHome ? ' fr-row-browse' : '') + (item.kind === 'file' ? ' fr-row-file' : '') + (freshPath === item.path ? ' fr-row-new' : '') + (isBusy ? ' fr-row-busy' : ''),
             onClick: item.kind === 'file'
               ? (event) => {
                   const target = event.target
@@ -1160,6 +1277,7 @@ window.__ModuleLoader__.load({
                 renderName(item),
                 freshPath === item.path ? h('span', { className: 'fr-new-badge' }, translate('files.newBadge')) : null,
               ),
+          h('span', { className: 'fr-row-source', title: item.sourceDir ? item.sourceDir + '/' : '' }, item.sourceDir ? item.sourceDir + '/' : ''),
           h('span', { className: 'fr-row-meta' }, item.kind === 'directory' ? '' : formatSize(item.size)),
           h('span', { className: 'fr-row-time', title: formatTime(item.mtime) }, formatFileTime(item.mtime, translate)),
           h(
@@ -1333,17 +1451,63 @@ window.__ModuleLoader__.load({
       )
 
       const parentPath = currentPath ? currentPath.split('/').slice(0, -1).join('/') : ''
+      const folderCards = isHome && folders.length > 0
+        ? h('div', { className: 'fr-folders-wrap' },
+            h('div', { className: 'fr-folders-label' }, translate('files.groupFolders')),
+            h('div', { className: 'fr-folders' },
+              folders.map((folder) => {
+                const updatedAt = folder.lastReceivedAt || folder.mtime || 0
+                const isNew = folder.lastReceivedAt > (folderSeen[folderSeenKey(folder.path)] || 0)
+                return h('div', {
+                    key: folder.path,
+                    className: 'fr-folder-card',
+                    role: 'button',
+                    tabIndex: 0,
+                    onClick: () => navigateTo(folder.path),
+                    onKeyDown: (event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        navigateTo(folder.path)
+                      }
+                    },
+                    title: folder.name,
+                  },
+                  h('span', { className: 'fr-folder-icon' }, h(FileTypeIcon, { name: folder.name, kind: 'directory', size: 22 })),
+                  h('span', { className: 'fr-folder-text' },
+                    h('span', { className: 'fr-folder-name' }, folder.name),
+                    h('span', { className: 'fr-folder-time' }, formatFileTime(updatedAt, translate)),
+                  ),
+                  isNew ? h('span', { className: 'fr-folder-new' }, translate('files.newBadge')) : null,
+                  h('button', {
+                    type: 'button',
+                    className: 'fr-folder-more',
+                    onClick: (event) => {
+                      event.stopPropagation()
+                      openRowMenu(event, { kind: 'directory', path: folder.path, name: folder.name })
+                    },
+                    title: translate('files.more'),
+                    'aria-label': translate('files.more'),
+                  }, '⋯'),
+                  h('span', { className: 'fr-folder-chevron', 'aria-hidden': true }, '›'),
+                )
+              }),
+            ),
+          )
+        : null
       const filesCard = h(
         'section',
         { className: 'fr-card fr-card-files' },
         h(
           'div',
           { className: 'fr-card-head' },
-          h('h2', null, translate('files.title')),
+          h('div', { className: 'fr-card-title' },
+            isHome ? null : h('button', { type: 'button', className: 'fr-back', onClick: backToHome, title: translate('files.back'), 'aria-label': translate('files.back') }, '←'),
+            h('h2', null, isHome ? translate('files.title') : (currentPath ? currentPath.split('/').pop() : translate('files.browseTitle'))),
+          ),
           h(
             'div',
             { className: 'fr-actions' },
-            currentPath
+            currentPath.includes('/')
               ? h('button', { type: 'button', className: 'fr-btn', onClick: () => navigateTo(parentPath), disabled: busy }, '↑ ' + translate('files.up'))
               : null,
             h('button', { type: 'button', className: 'fr-btn', onClick: createFolder, disabled: busy }, translate('files.newFolder')),
@@ -1371,6 +1535,18 @@ window.__ModuleLoader__.load({
               spellCheck: false,
             }),
           ),
+          isHome && folderFilterOptions.length > 1
+            ? h('select', {
+                className: 'fr-sort fr-filter',
+                value: folderFilter,
+                onChange: (event) => setFolderFilter(event.target.value),
+                'aria-label': translate('files.filterFolder'),
+                title: translate('files.filterFolder'),
+              },
+                h('option', { value: 'all' }, translate('files.allFolders')),
+                folderFilterOptions.map((folder) => h('option', { key: folder, value: folder }, folder + '/')),
+              )
+            : null,
           h(
             'select',
             { className: 'fr-sort', value: sort, onChange: (event) => setSort(event.target.value), 'aria-label': translate('files.sort'), title: translate('files.sort') },
@@ -1394,7 +1570,7 @@ window.__ModuleLoader__.load({
           : null,
         h(
           'div',
-          { className: 'fr-table-head' },
+          { className: 'fr-table-head' + (isHome ? '' : ' fr-table-head-browse') },
           h('input', {
             ref: selectAllRef,
             type: 'checkbox',
@@ -1407,6 +1583,7 @@ window.__ModuleLoader__.load({
           }),
           h('span'),
           h('span', null, translate('files.colName')),
+          h('span', { className: 'fr-col-source' }, translate('files.colSource')),
           h('span', { className: 'fr-col-size' }, translate('files.colSize')),
           h('span', { className: 'fr-col-time' }, translate('files.colTime')),
           h('span'),
@@ -1432,7 +1609,9 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'fr-foot' },
-          h('span', { className: 'fr-count' }, translate('files.count').replace('{dirs}', String(visibleDirs.length)).replace('{files}', String(visibleFiles.length))),
+          h('span', { className: 'fr-count' }, isHome
+            ? translate('files.countFiles').replace('{files}', String(visibleFiles.length))
+            : translate('files.count').replace('{dirs}', String(visibleDirs.length)).replace('{files}', String(visibleFiles.length))),
         ),
       )
 
@@ -1483,7 +1662,7 @@ window.__ModuleLoader__.load({
                 ),
                 networkCard,
               ),
-              h('div', { className: 'fr-main' }, filesCard),
+              h('div', { className: 'fr-main' }, folderCards, filesCard),
             )
           : null,
         rowMenu

@@ -36,6 +36,7 @@ import {
   deleteEntry,
   listDirectories,
   listDirectory,
+  listTopFolders,
   openInFileManager,
   renameEntry,
   resolveInside,
@@ -43,9 +44,12 @@ import {
 } from './lib/files.js'
 import {
   createToken,
+  DEFAULT_FOLDER,
   defaultSaveDir,
   displayPath,
   expandHome,
+  loadReceipts,
+  persistReceipts,
   listIPv4Addresses,
   loadSettings,
   persistSettings,
@@ -120,11 +124,11 @@ export async function apply(ctx, config = {}) {
   const configured = typeof config?.saveDir === 'string' ? config.saveDir.trim() : ''
   let saveDir = path.resolve(expandHome(resolveInitialSaveDir(configured, saved.saveDir)))
   try {
-    await mkdir(saveDir, { recursive: true })
+    await mkdir(path.join(saveDir, DEFAULT_FOLDER), { recursive: true })
   } catch (error) {
     ctx.logger?.warn?.('shuttle: 无法使用保存目录 %s（%s），回退到默认目录', saveDir, error?.message ?? error)
     saveDir = path.resolve(defaultSaveDir())
-    await mkdir(saveDir, { recursive: true }).catch(() => {})
+    await mkdir(path.join(saveDir, DEFAULT_FOLDER), { recursive: true }).catch(() => {})
   }
 
   const state = {
@@ -135,6 +139,7 @@ export async function apply(ctx, config = {}) {
     startedAt: Date.now(),
     lastUpload: null,
     lastVisit: null,
+    received: loadReceipts(saveDir),
     pageViews: 0,
     lastPageAt: null,
     diagnostics: [],
@@ -156,6 +161,16 @@ export async function apply(ctx, config = {}) {
     if (state.diagnostics.length > 40) state.diagnostics.splice(0, state.diagnostics.length - 40)
   }
 
+  const recordReceipt = (entry) => {
+    state.received.unshift(entry)
+    if (state.received.length > 1000) state.received.length = 1000
+    try {
+      persistReceipts(state.saveDir, state.received)
+    } catch (error) {
+      ctx.logger?.warn?.('shuttle: 无法保存接收记录：%s', error?.message ?? error)
+    }
+  }
+
   const snapshot = () => {
     const addresses = listIPv4Addresses()
     const preferred = pickAddress(addresses, state.preferredIp)
@@ -171,6 +186,8 @@ export async function apply(ctx, config = {}) {
       startedAt: state.startedAt,
       lastUpload: state.lastUpload,
       lastVisit: state.lastVisit,
+      received: state.received.slice(0, 500),
+      defaultFolder: DEFAULT_FOLDER,
       pageViews: state.pageViews,
       lastPageAt: state.lastPageAt,
       diagnostics: state.diagnostics.slice(-20),
@@ -225,6 +242,7 @@ export async function apply(ctx, config = {}) {
           hostName: os.hostname(),
           saveDirName: path.basename(state.saveDir) || state.saveDir,
           saveDir: state.saveDir,
+          defaultDirName: DEFAULT_FOLDER,
           wechat: state.lastVisit.wechat,
         }),
       )
@@ -241,7 +259,9 @@ export async function apply(ctx, config = {}) {
     }
     if (action === 'dirs') {
       if (req.method !== 'GET') return sendText(res, 405, 'Method not allowed')
-      const dirs = await listDirectories(state.saveDir, 2)
+      const dirs = (await listDirectories(state.saveDir, 2))
+        .filter((entry) => entry.path !== '')
+        .sort((left, right) => (left.path === DEFAULT_FOLDER ? -1 : right.path === DEFAULT_FOLDER ? 1 : 0))
       return sendJson(res, 200, { ok: true, dirs })
     }
     if (action === 'health') {
@@ -268,11 +288,13 @@ export async function apply(ctx, config = {}) {
     if (action === 'upload') {
       if (req.method !== 'POST') return sendText(res, 405, 'Method not allowed')
       try {
-        const targetDir = url.searchParams.get('dir') ?? ''
+        const requestedDir = (url.searchParams.get('dir') ?? '').replace(/^\/+|\/+$/g, '')
+        const targetDir = requestedDir || DEFAULT_FOLDER
         const rawName = url.searchParams.get('name') ?? 'file'
         recordDiagnostic('upload-start', { name: rawName, dir: targetDir, bytes: Number(req.headers['content-length'] ?? 0) || 0 }, req)
         const result = await saveUpload(state.saveDir, targetDir, rawName, req)
         state.lastUpload = { ...result, at: Date.now(), from: req.socket.remoteAddress ?? '' }
+        recordReceipt({ path: result.path, name: result.name, size: result.size, at: Date.now(), dir: targetDir })
         recordDiagnostic('upload-ok', { name: result.name, size: result.size }, req)
         return sendJson(res, 200, { ok: true, ...result })
       } catch (error) {
@@ -299,6 +321,19 @@ export async function apply(ctx, config = {}) {
         if (!view.url) return sendJson(res, 503, { ok: false, error: '没有可用的局域网地址' })
         return sendSvg(res, qrSvg(view.url))
       }
+      if (route === `${ADMIN_API}/folders`) {
+        if (method !== 'GET') return methodNotAllowed(res)
+        const folders = await listTopFolders(state.saveDir)
+        const withReceipts = folders.map((folder) => {
+          let lastReceivedAt = 0
+          for (const receipt of state.received) {
+            const top = String(receipt.dir || '').split('/')[0]
+            if (top === folder.name && receipt.at > lastReceivedAt) lastReceivedAt = receipt.at
+          }
+          return { ...folder, lastReceivedAt }
+        })
+        return sendJson(res, 200, { ok: true, folders: withReceipts })
+      }
       if (route === `${ADMIN_API}/list`) {
         if (method !== 'GET') return methodNotAllowed(res)
         const relative = url.searchParams.get('path') ?? ''
@@ -316,6 +351,21 @@ export async function apply(ctx, config = {}) {
         const body = await readJsonBody(req)
         if (typeof body.path !== 'string' || !body.path) return badRequest(res, '缺少 path')
         const renamed = await renameEntry(state.saveDir, body.path, body.name)
+        let changed = false
+        for (const receipt of state.received) {
+          if (receipt.path === body.path) {
+            receipt.path = renamed
+            receipt.name = path.basename(renamed)
+            changed = true
+          } else if (receipt.path.startsWith(body.path + '/')) {
+            receipt.path = renamed + receipt.path.slice(body.path.length)
+            receipt.name = path.basename(receipt.path)
+            changed = true
+          }
+        }
+        if (changed) {
+          try { persistReceipts(state.saveDir, state.received) } catch { /* 记录失败不影响重命名 */ }
+        }
         return sendJson(res, 200, { ok: true, path: renamed })
       }
       if (route === `${ADMIN_API}/delete`) {
@@ -328,6 +378,13 @@ export async function apply(ctx, config = {}) {
           if (typeof target !== 'string' || !target) continue
           await deleteEntry(state.saveDir, target)
           deleted += 1
+        }
+        const before = state.received.length
+        state.received = state.received.filter((receipt) =>
+          !targets.some((target) => receipt.path === target || receipt.path.startsWith(target + '/')),
+        )
+        if (state.received.length !== before) {
+          try { persistReceipts(state.saveDir, state.received) } catch { /* 记录失败不影响删除 */ }
         }
         return sendJson(res, 200, { ok: true, deleted })
       }
@@ -418,8 +475,15 @@ export async function apply(ctx, config = {}) {
         if (typeof body.saveDir === 'string') {
           const candidate = path.resolve(expandHome(body.saveDir))
           if (!candidate) return badRequest(res, '保存目录不能为空')
-          await mkdir(candidate, { recursive: true })
-          state.saveDir = candidate
+          if (candidate !== state.saveDir) {
+            await mkdir(path.join(candidate, DEFAULT_FOLDER), { recursive: true })
+            state.saveDir = candidate
+            state.received = []
+            state.lastUpload = null
+            persistReceipts(candidate, [])
+          } else {
+            await mkdir(path.join(candidate, DEFAULT_FOLDER), { recursive: true })
+          }
           persistSettings({ saveDir: candidate })
         }
         if (typeof body.preferredIp === 'string') {
