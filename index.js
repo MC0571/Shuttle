@@ -23,10 +23,12 @@
  * 数据只在局域网内传输：手机 → 本机监听端口 → 保存目录，不经过任何中转。
  */
 import http from 'node:http'
+import { spawn } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { mkdir, stat } from 'node:fs/promises'
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 
 import { renderPhonePage } from './lib/phone-page.js'
 import {
@@ -59,6 +61,37 @@ import {
 } from './lib/util.js'
 
 export const name = 'shuttle'
+
+const THUMB_DIR = path.join(os.tmpdir(), 'shuttle-thumbs')
+
+function makeVideoThumb(target, key) {
+  return new Promise((resolve, reject) => {
+    const file = path.join(THUMB_DIR, key + '.jpg')
+    readFile(file).then(resolve, () => {
+      mkdir(THUMB_DIR, { recursive: true }).then(() => {
+        const child = spawn(
+          'ffmpeg',
+          ['-v', 'error', '-ss', '0.1', '-i', target, '-frames:v', '1', '-vf', 'scale=80:80:force_original_aspect_ratio=increase,crop=80:80', '-q:v', '4', '-f', 'mjpeg', 'pipe:1'],
+          { stdio: ['ignore', 'pipe', 'ignore'] },
+        )
+        const chunks = []
+        const timer = setTimeout(() => child.kill('SIGKILL'), 10000)
+        child.stdout.on('data', (chunk) => chunks.push(chunk))
+        child.on('error', (error) => {
+          clearTimeout(timer)
+          reject(error)
+        })
+        child.on('close', (code) => {
+          clearTimeout(timer)
+          if (code !== 0) return reject(new Error('thumbnail generation failed'))
+          const buffer = Buffer.concat(chunks)
+          if (buffer.length === 0) return reject(new Error('empty thumbnail'))
+          writeFile(file, buffer).then(() => resolve(buffer), () => resolve(buffer))
+        })
+      }, reject)
+    })
+  })
+}
 
 const ADMIN_PREFIX = '/shuttle'
 const ADMIN_API = '/shuttle/api'
@@ -331,6 +364,37 @@ export async function apply(ctx, config = {}) {
         stream.on('error', () => res.destroy())
         stream.pipe(res)
         return
+      }
+
+      if (route === `${ADMIN_API}/thumb`) {
+        if (method !== 'GET') return methodNotAllowed(res)
+        const relative = url.searchParams.get('path') || ''
+        const target = resolveInside(state.saveDir, relative)
+        const info = await stat(target)
+        if (!info.isFile()) return badRequest(res, '不是文件')
+        const extension = path.extname(target).toLowerCase()
+        const imageMime = {
+          '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.gif': 'image/gif',
+          '.webp': 'image/webp', '.bmp': 'image/bmp', '.avif': 'image/avif', '.heic': 'image/heic',
+        }
+        if (imageMime[extension]) {
+          const stream = createReadStream(target)
+          res.writeHead(200, { 'Content-Type': imageMime[extension], 'Content-Length': info.size, 'Cache-Control': 'private, max-age=60' })
+          stream.on('error', () => res.destroy())
+          stream.pipe(res)
+          return
+        }
+        if (['.mp4', '.mov', '.m4v', '.avi', '.mkv', '.webm', '.ts'].includes(extension)) {
+          const key = createHash('sha1').update(target).update(String(info.mtimeMs)).update(String(info.size)).digest('hex')
+          try {
+            const buffer = await makeVideoThumb(target, key)
+            res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Content-Length': buffer.length, 'Cache-Control': 'private, max-age=3600' })
+            return res.end(buffer)
+          } catch {
+            return sendJson(res, 415, { ok: false, error: '无法生成视频缩略图' })
+          }
+        }
+        return sendJson(res, 415, { ok: false, error: '不支持的缩略图类型' })
       }
 
       if (route === `${ADMIN_API}/pick-dir`) {

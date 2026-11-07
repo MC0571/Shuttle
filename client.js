@@ -280,15 +280,17 @@ window.__ModuleLoader__.load({
 .fr-list { border-top: 1px solid var(--dsw-alias-border-l1); flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; position: relative; }
 .fr-table-head { display: grid; grid-template-columns: 26px 18px minmax(0, 1fr) 72px 102px 30px; align-items: center; gap: 10px; padding: 7px 6px; border-top: 1px solid var(--dsw-alias-border-l1); border-bottom: 1px solid var(--dsw-alias-border-l1); font-size: 11px; color: var(--dsw-alias-label-secondary); flex: none; }
 .fr-table-head span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fr-row { display: grid; grid-template-columns: 26px 18px minmax(0, 1fr) 72px 102px 30px; align-items: center; gap: 10px; padding: 8px 6px; height: 56px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
+.fr-row { display: grid; grid-template-columns: 26px 34px minmax(0, 1fr) 72px 102px 30px; align-items: center; gap: 10px; padding: 8px 6px; height: 56px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
+.fr-row-file { cursor: pointer; }
 .fr-row:hover { background: var(--dsw-alias-bg-layer-2); }
 .fr-row-new { animation: frNewRow 3.2s ease-out; }
 @keyframes frNewRow { 0% { background: rgba(37, 99, 235, .16); } 100% { background: transparent; } }
 .fr-row-busy { opacity: .55; }
-.fr-row-icon { font-size: 13px; text-align: center; }
+.fr-row-icon { width: 32px; height: 32px; display: grid; place-items: center; font-size: 13px; }
 .fr-check { width: 15px; height: 15px; margin: 0; accent-color: var(--dsw-alias-brand-primary); cursor: pointer; }
-.fr-thumb { width: 30px; height: 30px; border-radius: 7px; overflow: hidden; background: var(--dsw-alias-bg-base); display: block; }
-.fr-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fr-thumb { position: relative; width: 32px; height: 32px; border-radius: 8px; overflow: hidden; background: var(--dsw-alias-bg-base); display: block; }
+.fr-thumb img { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: cover; display: block; }
+.fr-thumb-fallback { position: absolute; inset: 0; display: grid; place-items: center; font-size: 14px; }
 .fr-group { display: flex; align-items: center; gap: 8px; height: 32px; padding: 6px 6px 2px; font-size: 11.5px; color: var(--dsw-alias-label-secondary); background: var(--dsw-alias-bg-layer-1); border-bottom: 1px solid var(--dsw-alias-border-l1); position: sticky; top: 0; z-index: 2; }
 .fr-group b { font-weight: 600; color: var(--dsw-alias-label-primary); }
 .fr-row-name { display: flex; align-items: flex-start; gap: 5px; min-width: 0; overflow: hidden; font-size: 13px; line-height: 1.35; }
@@ -340,7 +342,7 @@ window.__ModuleLoader__.load({
   .fr-grid { display: flex; flex-direction: column; flex: none; }
   .fr-side { overflow: visible; }
   .fr-card-files { min-height: 460px; }
-  .fr-row { grid-template-columns: 24px 18px minmax(0, 1fr) 30px; height: 56px; }
+  .fr-row { grid-template-columns: 24px 34px minmax(0, 1fr) 30px; height: 56px; }
   .fr-table-head { display: none; }
   .fr-row-meta, .fr-row-time { display: none; }
 }
@@ -433,6 +435,10 @@ window.__ModuleLoader__.load({
 
     function imageFile(name) {
       return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'avif', 'heic'].includes(fileExtension(name))
+    }
+
+    function videoFile(name) {
+      return ['mp4', 'mov', 'm4v', 'avi', 'mkv', 'webm', 'ts'].includes(fileExtension(name))
     }
 
     function formatGroupLabel(milliseconds, translate) {
@@ -906,6 +912,12 @@ window.__ModuleLoader__.load({
         })
       }
 
+      const openItem = (item) => {
+        runRowAction(item, async () => {
+          await request('/open', postJson({ path: item.path }))
+        })
+      }
+
       const openCurrentDir = () => {
         act(async () => {
           await request('/open', postJson({ path: pathRef.current }))
@@ -1019,7 +1031,17 @@ window.__ModuleLoader__.load({
         const isBusy = rowBusy === item.path
         return h(
           'div',
-          { key: item.path, className: 'fr-row' + (freshPath === item.path ? ' fr-row-new' : '') + (isBusy ? ' fr-row-busy' : '') },
+          {
+            key: item.path,
+            className: 'fr-row' + (item.kind === 'file' ? ' fr-row-file' : '') + (freshPath === item.path ? ' fr-row-new' : '') + (isBusy ? ' fr-row-busy' : ''),
+            onClick: item.kind === 'file'
+              ? (event) => {
+                  const target = event.target
+                  if (target && target.closest && target.closest('button, input, a')) return
+                  openItem(item)
+                }
+              : undefined,
+          },
           h('input', {
             type: 'checkbox',
             className: 'fr-check',
@@ -1027,14 +1049,18 @@ window.__ModuleLoader__.load({
             onChange: () => toggleSelect(item.path),
             'aria-label': translate('files.selectAll') + ': ' + item.name,
           }),
-          item.kind === 'file' && imageFile(item.name)
+          item.kind === 'file' && (imageFile(item.name) || videoFile(item.name))
             ? h(
                 'span',
                 { className: 'fr-thumb' },
+                h('span', { className: 'fr-thumb-fallback', 'aria-hidden': true }, fileIcon(item.name, item.kind)),
                 h('img', {
-                  src: API + '/raw?path=' + encodeURIComponent(item.path),
+                  src: API + '/thumb?path=' + encodeURIComponent(item.path),
                   loading: 'lazy',
                   alt: '',
+                  onError: (event) => {
+                    event.currentTarget.style.display = 'none'
+                  },
                 }),
               )
             : h('span', { className: 'fr-row-icon', 'aria-hidden': true }, fileIcon(item.name, item.kind)),

@@ -212,6 +212,10 @@ try {
   check('admin raw returns image content type', rawResponse.ok && rawResponse.headers.get('content-type') === 'image/png')
   const rawTraversal = await fetch(`${adminBase}/shuttle/api/raw?path=${encodeURIComponent('../outside.png')}`)
   check('admin raw refuses traversal', rawTraversal.status === 400)
+  const thumbResponse = await fetch(`${adminBase}/shuttle/api/thumb?path=thumb.png`)
+  check('admin thumb returns image content type', thumbResponse.ok && thumbResponse.headers.get('content-type') === 'image/png')
+  const thumbTraversal = await fetch(`${adminBase}/shuttle/api/thumb?path=${encodeURIComponent('../outside.png')}`)
+  check('admin thumb refuses traversal', thumbTraversal.status === 400)
   await fetch(`${adminBase}/shuttle/api/delete`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
