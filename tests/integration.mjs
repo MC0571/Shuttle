@@ -102,6 +102,9 @@ try {
   check('file input declares wildcard accept', wechatText.includes('accept="*/*"'))
   check('browser file entry declares document accept', pageText.includes('application/pdf') && pageText.includes('.docx'))
   check('phone page pinned to light theme', !wechatText.includes('prefers-color-scheme') && wechatText.includes('color-scheme: light'))
+  check('save target starts hidden and uses a bottom sheet', wechatText.includes('id="target-card" hidden') && wechatText.includes('id="dir-sheet"') && !wechatText.includes('<select id="dir"'))
+  check('save target hides itself for a root-only listing', wechatText.includes('dirs.length <= 1'))
+  check('save target renders directory options dynamically', wechatText.includes('renderDirOptions') && wechatText.includes('dir-option'))
   check(
     'normal page shows photo and file entries',
     pageText.includes('accept="image/*,video/*"') && pageText.includes('id="files"') && pageText.includes('id="photos"') && !pageText.includes('id="compat"'),

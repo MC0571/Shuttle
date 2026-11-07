@@ -16,6 +16,7 @@ window.__ModuleLoader__.load({
     const NS = 'shuttle'
     const API = '/shuttle/api'
     const PANEL_KEY = 'shuttle'
+    let panelCtx = null
 
     const zh = {
       'panel.title': '文件穿梭机',
@@ -74,9 +75,13 @@ window.__ModuleLoader__.load({
       'files.deleteDirConfirm': '删除空文件夹「{name}」？',
       'files.received': '收到新文件：{name}',
       'files.count': '{dirs} 个文件夹 · {files} 个文件',
+      'settings.title': '保存目录',
       'settings.saveDir': '保存到',
       'settings.change': '修改',
       'settings.changePrompt': '保存目录路径',
+      'settings.pick': '选择文件夹…',
+      'settings.unavailable': '当前环境无法打开系统文件夹选择器',
+      'settings.updated': '保存目录已更新',
       'tips.title': '使用提示',
       'tips.sameWifi': '手机和电脑必须连接同一个 WiFi 或局域网。',
       'tips.wechat': '微信内只显示「文件」入口（照片可在系统选择器的「图片」分类里选）；想要更顺手的体验，建议用手机系统相机扫码，或点右上角「…」→「在浏览器中打开」。',
@@ -142,9 +147,13 @@ window.__ModuleLoader__.load({
       'files.deleteDirConfirm': 'Delete the empty folder "{name}"?',
       'files.received': 'New file received: {name}',
       'files.count': '{dirs} folders · {files} files',
+      'settings.title': 'Save folder',
       'settings.saveDir': 'Save to',
       'settings.change': 'Change',
       'settings.changePrompt': 'Save folder path',
+      'settings.pick': 'Choose folder…',
+      'settings.unavailable': 'The system folder picker is not available here',
+      'settings.updated': 'Save folder updated',
       'tips.title': 'Good to know',
       'tips.sameWifi': 'Phone and computer must be on the same Wi-Fi or LAN.',
       'tips.wechat': 'Inside WeChat only the “File” entry is shown (photos live under the system picker’s “Images” section). For a smoother flow use the system camera, or open this page in a browser.',
@@ -154,9 +163,9 @@ window.__ModuleLoader__.load({
     }
 
     const CSS = `
-.fr-root { box-sizing: border-box; height: 100%; overflow: auto; padding: 26px 30px 48px; color: var(--dsw-alias-label-primary); font-size: 13.5px; line-height: 1.55; }
+.fr-root { box-sizing: border-box; height: 100%; overflow: hidden; display: flex; flex-direction: column; padding: 26px 30px 24px; color: var(--dsw-alias-label-primary); font-size: 13.5px; line-height: 1.55; }
 .fr-root *, .fr-root *::before, .fr-root *::after { box-sizing: border-box; }
-.fr-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; max-width: 1120px; margin: 0 auto 18px; }
+.fr-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; max-width: 1120px; width: 100%; margin: 0 auto 16px; flex: none; }
 .fr-head-text h1 { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: .01em; }
 .fr-head-text p { margin: 4px 0 0; font-size: 12.5px; color: var(--dsw-alias-label-secondary); max-width: 680px; }
 .fr-head-actions { display: flex; align-items: center; gap: 10px; flex: none; }
@@ -170,8 +179,16 @@ window.__ModuleLoader__.load({
 .fr-btn-primary:hover:not(:disabled) { background: var(--dsw-alias-brand-primary); border-color: var(--dsw-alias-brand-primary); opacity: .92; }
 .fr-btn-danger { background: var(--dsw-alias-state-error-primary); border-color: var(--dsw-alias-state-error-primary); color: #fff; }
 .fr-btn-danger:hover:not(:disabled) { background: var(--dsw-alias-state-error-primary); border-color: var(--dsw-alias-state-error-primary); opacity: .92; }
-.fr-grid { display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); gap: 16px; max-width: 1120px; margin: 0 auto; align-items: start; }
+.fr-grid { display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); gap: 16px; max-width: 1120px; width: 100%; margin: 0 auto; flex: 1; min-height: 0; align-items: stretch; }
+.fr-side { display: flex; flex-direction: column; gap: 16px; min-height: 0; overflow: auto; padding-right: 2px; }
+.fr-main { display: flex; flex-direction: column; min-height: 0; }
+.fr-card-files { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .fr-card { background: var(--dsw-alias-bg-layer-1); border: 1px solid var(--dsw-alias-border-l1); border-radius: 14px; padding: 18px; min-width: 0; }
+.fr-save-path { display: flex; align-items: center; gap: 10px; background: var(--dsw-alias-bg-base); border: 1px solid var(--dsw-alias-border-l1); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+.fr-save-icon { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: rgba(37, 99, 235, .12); color: var(--dsw-alias-brand-primary); }
+.fr-save-path-text { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; word-break: break-all; color: var(--dsw-alias-label-primary); }
+.fr-btn-block { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 12px; font-size: 13px; border-radius: 9px; }
+.fr-btn-icon { display: inline-flex; align-items: center; }
 .fr-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
 .fr-card h2 { margin: 0; font-size: 14px; font-weight: 650; letter-spacing: .01em; }
 .fr-qr-box { display: flex; justify-content: center; padding: 14px; margin-bottom: 14px; border-radius: 12px; background: var(--dsw-alias-bg-base); border: 1px solid var(--dsw-alias-border-l1); }
@@ -191,7 +208,7 @@ window.__ModuleLoader__.load({
 .fr-crumb { appearance: none; border: none; background: none; color: var(--dsw-alias-label-secondary); padding: 2px 5px; border-radius: 6px; cursor: pointer; font-size: 12.5px; font-family: inherit; }
 .fr-crumb:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
 .fr-crumb-sep { color: var(--dsw-alias-border-l2); padding: 0 1px; }
-.fr-list { border-top: 1px solid var(--dsw-alias-border-l1); }
+.fr-list { border-top: 1px solid var(--dsw-alias-border-l1); flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
 .fr-row { display: grid; grid-template-columns: 18px minmax(0, 1fr) 74px 116px auto; align-items: center; gap: 10px; padding: 9px 6px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
 .fr-row:hover { background: var(--dsw-alias-bg-layer-2); }
 .fr-row-icon { font-size: 13px; text-align: center; }
@@ -207,7 +224,7 @@ window.__ModuleLoader__.load({
 .fr-empty { padding: 26px 10px; text-align: center; color: var(--dsw-alias-label-secondary); font-size: 12.5px; }
 .fr-foot { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 12px; color: var(--dsw-alias-label-secondary); flex-wrap: wrap; }
 .fr-count { margin-left: auto; }
-.fr-tips { max-width: 1120px; margin: 16px auto 0; }
+.fr-tips { max-width: none; margin: 0; flex: none; }
 .fr-tips ul { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--dsw-alias-label-secondary); font-size: 12.5px; }
 .fr-banner { max-width: 1120px; margin: 0 auto 12px; padding: 9px 12px; border-radius: 9px; font-size: 12.5px; background: var(--dsw-alias-bg-layer-1); }
 .fr-banner-error { color: var(--dsw-alias-state-error-primary); border: 1px solid var(--dsw-alias-state-error-primary); }
@@ -220,8 +237,10 @@ window.__ModuleLoader__.load({
 .fr-dialog-input:focus { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: -1px; }
 .fr-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
 @media (max-width: 900px) {
-  .fr-root { padding: 16px 14px 36px; }
-  .fr-grid { grid-template-columns: minmax(0, 1fr); }
+  .fr-root { padding: 16px 14px 20px; overflow: auto; }
+  .fr-grid { display: flex; flex-direction: column; flex: none; }
+  .fr-side { overflow: visible; }
+  .fr-card-files { min-height: 460px; }
   .fr-row { grid-template-columns: 18px minmax(0, 1fr) auto; }
   .fr-row-meta, .fr-row-time { display: none; }
 }
@@ -635,22 +654,23 @@ window.__ModuleLoader__.load({
 
       const changeSaveDir = () => {
         if (!state) return
-        askText(
-          {
-            title: translate('settings.changePrompt'),
-            value: state.saveDir,
-            confirmText: translate('common.save'),
-          },
-          (next) => {
-            if (!next || !next.trim()) return
-            act(async () => {
-              const updated = await request('/settings', postJson({ saveDir: next }))
-              setState(updated)
-              pathRef.current = ''
-              await loadListing('')
-            })
-          },
-        )
+        act(async () => {
+          const workspace = panelCtx && typeof panelCtx.get === 'function' ? panelCtx.get('uiWorkspace') : null
+          let picked = null
+          if (workspace && typeof workspace.pickDirectory === 'function') {
+            picked = await workspace.pickDirectory()
+          } else {
+            const result = await request('/pick-dir', { method: 'POST' })
+            if (!result.available) throw new Error(translate('settings.unavailable'))
+            picked = result.path
+          }
+          if (!picked) return
+          const updated = await request('/settings', postJson({ saveDir: picked }))
+          setState(updated)
+          pathRef.current = ''
+          await loadListing('')
+          flash(translate('settings.updated'))
+        })
       }
 
       const status = state ? (state.lanError ? 'degraded' : state.url ? 'ready' : 'degraded') : 'loading'
@@ -767,9 +787,43 @@ window.__ModuleLoader__.load({
           : null,
       )
 
-      const filesCard = h(
+      const folderGlyph = h(
+        'svg',
+        {
+          width: 17,
+          height: 17,
+          viewBox: '0 0 24 24',
+          fill: 'none',
+          stroke: 'currentColor',
+          strokeWidth: 1.7,
+          strokeLinecap: 'round',
+          strokeLinejoin: 'round',
+          'aria-hidden': true,
+        },
+        h('path', { d: 'M3.5 6.8a1.7 1.7 0 0 1 1.7-1.7h4l1.8 2.2h7.8a1.7 1.7 0 0 1 1.7 1.7v8.2a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7z' }),
+      )
+
+      const settingsCard = h(
         'section',
         { className: 'fr-card' },
+        h('div', { className: 'fr-card-head' }, h('h2', null, translate('settings.title'))),
+        h(
+          'div',
+          { className: 'fr-save-path' },
+          h('span', { className: 'fr-save-icon' }, folderGlyph),
+          h('span', { className: 'fr-save-path-text', title: state ? state.saveDir : '' }, state ? state.saveDirLabel : ''),
+        ),
+        h(
+          'button',
+          { type: 'button', className: 'fr-btn fr-btn-primary fr-btn-block', onClick: changeSaveDir, disabled: busy },
+          h('span', { className: 'fr-btn-icon' }, folderGlyph),
+          translate('settings.pick'),
+        ),
+      )
+
+      const filesCard = h(
+        'section',
+        { className: 'fr-card fr-card-files' },
         h(
           'div',
           { className: 'fr-card-head' },
@@ -798,8 +852,6 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'fr-foot' },
-          h('span', null, `${translate('settings.saveDir')}: ${state ? state.saveDirLabel : ''}`),
-          h('button', { type: 'button', className: 'fr-link', onClick: changeSaveDir, disabled: busy }, translate('settings.change')),
           h('span', { className: 'fr-count' }, translate('files.count').replace('{dirs}', String(dirs.length)).replace('{files}', String(files.length))),
         ),
       )
@@ -830,22 +882,27 @@ window.__ModuleLoader__.load({
           ? h(
               'div',
               { className: 'fr-grid' },
-              qrCard,
-              filesCard,
               h(
-                'section',
-                { className: 'fr-card fr-tips' },
-                h('h2', null, translate('tips.title')),
+                'div',
+                { className: 'fr-side' },
+                qrCard,
+                settingsCard,
                 h(
-                  'ul',
-                  null,
-                  h('li', null, translate('tips.sameWifi')),
-                  h('li', null, translate('tips.wechat')),
-                  h('li', null, translate('tips.firewall')),
-                  h('li', null, translate('tips.foreground')),
-                  h('li', null, translate('tips.token')),
+                  'section',
+                  { className: 'fr-card fr-tips' },
+                  h('h2', null, translate('tips.title')),
+                  h(
+                    'ul',
+                    null,
+                    h('li', null, translate('tips.sameWifi')),
+                    h('li', null, translate('tips.wechat')),
+                    h('li', null, translate('tips.firewall')),
+                    h('li', null, translate('tips.foreground')),
+                    h('li', null, translate('tips.token')),
+                  ),
                 ),
               ),
+              h('div', { className: 'fr-main' }, filesCard),
             )
           : null,
         dialog ? h(Dialog, { dialog, translate, onCancel: closeDialog, onSubmit: submitDialog }) : null,
@@ -863,6 +920,7 @@ window.__ModuleLoader__.load({
     }
 
     function apply(ctx) {
+      panelCtx = ctx
       injectStyles(ctx)
       const t = (key) => {
         try {

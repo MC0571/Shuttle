@@ -15,6 +15,7 @@
  *        POST /shuttle/api/rename        重命名
  *        POST /shuttle/api/delete        删除（文件夹仅限空目录）
  *        POST /shuttle/api/open          在系统文件管理器中打开
+ *        POST /shuttle/api/pick-dir      调用系统文件夹选择器
  *        POST /shuttle/api/settings      修改保存目录 / 网络接口
  *        POST /shuttle/api/rotate-token  重置二维码链接
  *
@@ -300,6 +301,21 @@ export async function apply(ctx, config = {}) {
         const target = resolveInside(state.saveDir, typeof body.path === 'string' ? body.path : '')
         const opened = openInFileManager(target)
         return sendJson(res, 200, { ok: true, opened })
+      }
+      if (route === `${ADMIN_API}/pick-dir`) {
+        if (method !== 'POST') return methodNotAllowed(res)
+        let available = false
+        let picked = null
+        try {
+          const picker = ctx.get('directoryPickerController')
+          if (picker && typeof picker.pick === 'function') {
+            available = true
+            picked = await picker.pick(new AbortController().signal)
+          }
+        } catch (error) {
+          return sendJson(res, 200, { ok: false, available: true, error: error?.message || String(error) })
+        }
+        return sendJson(res, 200, { ok: true, available, path: picked ?? null })
       }
       if (route === `${ADMIN_API}/settings`) {
         if (method !== 'POST') return methodNotAllowed(res)
