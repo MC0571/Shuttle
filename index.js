@@ -11,6 +11,7 @@
  *        GET  /shuttle/api/state         运行状态、二维码 URL、网络接口
  *        GET  /shuttle/api/qr.svg        二维码（离线生成）
  *        GET  /shuttle/api/list?path=    列目录
+ *        GET  /shuttle/api/raw?path=     读取保存目录内的文件（图片缩略图）
  *        POST /shuttle/api/mkdir         新建文件夹
  *        POST /shuttle/api/rename        重命名
  *        POST /shuttle/api/delete        删除（文件夹仅限空目录）
@@ -22,9 +23,10 @@
  * 数据只在局域网内传输：手机 → 本机监听端口 → 保存目录，不经过任何中转。
  */
 import http from 'node:http'
+import { createReadStream } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { mkdir } from 'node:fs/promises'
+import { mkdir, stat } from 'node:fs/promises'
 
 import { renderPhonePage } from './lib/phone-page.js'
 import {
@@ -303,6 +305,34 @@ export async function apply(ctx, config = {}) {
         const opened = openInFileManager(target)
         return sendJson(res, 200, { ok: true, opened })
       }
+      if (route === `${ADMIN_API}/raw`) {
+        if (method !== 'GET') return methodNotAllowed(res)
+        const relative = url.searchParams.get('path') || ''
+        const target = resolveInside(state.saveDir, relative)
+        const info = await stat(target)
+        if (!info.isFile()) return badRequest(res, '不是文件')
+        const mimeTypes = {
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.png': 'image/png',
+          '.gif': 'image/gif',
+          '.webp': 'image/webp',
+          '.bmp': 'image/bmp',
+          '.avif': 'image/avif',
+          '.heic': 'image/heic',
+        }
+        const mime = mimeTypes[path.extname(target).toLowerCase()] || 'application/octet-stream'
+        res.writeHead(200, {
+          'Content-Type': mime,
+          'Content-Length': info.size,
+          'Cache-Control': 'private, max-age=60',
+        })
+        const stream = createReadStream(target)
+        stream.on('error', () => res.destroy())
+        stream.pipe(res)
+        return
+      }
+
       if (route === `${ADMIN_API}/pick-dir`) {
         if (method !== 'POST') return methodNotAllowed(res)
         let available = false

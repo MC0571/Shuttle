@@ -89,6 +89,20 @@ window.__ModuleLoader__.load({
       'files.more': '更多操作',
       'files.today': '今天',
       'files.yesterday': '昨天',
+      'files.colName': '名称',
+      'files.colSize': '大小',
+      'files.colTime': '修改时间',
+      'files.selectAll': '全选',
+      'files.selectedCount': '已选 {n} 项',
+      'files.batchDelete': '批量删除',
+      'files.batchDeleteConfirm': '删除选中的 {n} 项？文件夹仅能删除空目录。',
+      'files.clearSelection': '取消选择',
+      'files.emptyTitle': '还没有收到文件',
+      'files.emptyHint': '用手机扫描左侧二维码，照片和文件会直接传到这台电脑。',
+      'files.noMatchHint': '换个关键词，或清空搜索框再试。',
+      'files.up': '上一级',
+      'files.groupFolders': '文件夹',
+      'files.clearSearch': '清空搜索',
       'settings.title': '保存目录',
       'settings.saveDir': '保存到',
       'settings.change': '修改',
@@ -175,6 +189,20 @@ window.__ModuleLoader__.load({
       'files.more': 'More actions',
       'files.today': 'Today',
       'files.yesterday': 'Yesterday',
+      'files.colName': 'Name',
+      'files.colSize': 'Size',
+      'files.colTime': 'Modified',
+      'files.selectAll': 'Select all',
+      'files.selectedCount': '{n} selected',
+      'files.batchDelete': 'Delete selected',
+      'files.batchDeleteConfirm': 'Delete the {n} selected item(s)? Only empty folders can be deleted.',
+      'files.clearSelection': 'Clear selection',
+      'files.emptyTitle': 'No files yet',
+      'files.emptyHint': 'Scan the QR code on the left; photos and files will arrive here.',
+      'files.noMatchHint': 'Try another keyword or clear the search.',
+      'files.up': 'Up',
+      'files.groupFolders': 'Folders',
+      'files.clearSearch': 'Clear search',
       'settings.title': 'Save folder',
       'settings.saveDir': 'Save to',
       'settings.change': 'Change',
@@ -249,10 +277,20 @@ window.__ModuleLoader__.load({
 .fr-crumb { appearance: none; border: none; background: none; color: var(--dsw-alias-label-secondary); padding: 2px 5px; border-radius: 6px; cursor: pointer; font-size: 12.5px; font-family: inherit; }
 .fr-crumb:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
 .fr-crumb-sep { color: var(--dsw-alias-border-l2); padding: 0 1px; }
-.fr-list { border-top: 1px solid var(--dsw-alias-border-l1); flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
-.fr-row { display: grid; grid-template-columns: 18px minmax(0, 1fr) 72px 102px 30px; align-items: center; gap: 10px; padding: 8px 6px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
+.fr-list { border-top: 1px solid var(--dsw-alias-border-l1); flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; position: relative; }
+.fr-table-head { display: grid; grid-template-columns: 26px 18px minmax(0, 1fr) 72px 102px 30px; align-items: center; gap: 10px; padding: 7px 6px; border-top: 1px solid var(--dsw-alias-border-l1); border-bottom: 1px solid var(--dsw-alias-border-l1); font-size: 11px; color: var(--dsw-alias-label-secondary); flex: none; }
+.fr-table-head span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fr-row { display: grid; grid-template-columns: 26px 18px minmax(0, 1fr) 72px 102px 30px; align-items: center; gap: 10px; padding: 8px 6px; height: 56px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
 .fr-row:hover { background: var(--dsw-alias-bg-layer-2); }
+.fr-row-new { animation: frNewRow 3.2s ease-out; }
+@keyframes frNewRow { 0% { background: rgba(37, 99, 235, .16); } 100% { background: transparent; } }
+.fr-row-busy { opacity: .55; }
 .fr-row-icon { font-size: 13px; text-align: center; }
+.fr-check { width: 15px; height: 15px; margin: 0; accent-color: var(--dsw-alias-brand-primary); cursor: pointer; }
+.fr-thumb { width: 30px; height: 30px; border-radius: 7px; overflow: hidden; background: var(--dsw-alias-bg-base); display: block; }
+.fr-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fr-group { display: flex; align-items: center; gap: 8px; height: 32px; padding: 6px 6px 2px; font-size: 11.5px; color: var(--dsw-alias-label-secondary); background: var(--dsw-alias-bg-layer-1); border-bottom: 1px solid var(--dsw-alias-border-l1); position: sticky; top: 0; z-index: 2; }
+.fr-group b { font-weight: 600; color: var(--dsw-alias-label-primary); }
 .fr-row-name { display: flex; align-items: flex-start; gap: 5px; min-width: 0; overflow: hidden; font-size: 13px; line-height: 1.35; }
 .fr-row-name-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; overflow-wrap: anywhere; max-height: 2.7em; }
 .fr-row-ext { flex: none; margin-top: 1px; padding: 0 4px; border-radius: 4px; background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-secondary); font-size: 9.5px; line-height: 1.45; text-transform: uppercase; }
@@ -278,7 +316,11 @@ window.__ModuleLoader__.load({
 .fr-link:hover:not(:disabled) { color: var(--dsw-alias-brand-primary); }
 .fr-link:disabled { opacity: .5; cursor: default; }
 .fr-danger:hover:not(:disabled) { color: var(--dsw-alias-state-error-primary); }
-.fr-empty { padding: 26px 10px; text-align: center; color: var(--dsw-alias-label-secondary); font-size: 12.5px; }
+.fr-empty { padding: 36px 16px; text-align: center; color: var(--dsw-alias-label-secondary); font-size: 12.5px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.fr-empty-icon { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--dsw-alias-bg-layer-2); font-size: 20px; }
+.fr-empty strong { font-size: 13.5px; color: var(--dsw-alias-label-primary); font-weight: 600; }
+.fr-selection-bar { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; padding: 7px 10px; border-radius: 8px; background: var(--dsw-alias-bg-layer-2); font-size: 12px; color: var(--dsw-alias-label-secondary); }
+.fr-selection-bar .fr-count { margin-left: auto; }
 .fr-foot { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 12px; color: var(--dsw-alias-label-secondary); flex-wrap: wrap; }
 .fr-count { margin-left: auto; }
 .fr-tips { max-width: none; margin: 0; flex: none; }
@@ -298,7 +340,8 @@ window.__ModuleLoader__.load({
   .fr-grid { display: flex; flex-direction: column; flex: none; }
   .fr-side { overflow: visible; }
   .fr-card-files { min-height: 460px; }
-  .fr-row { grid-template-columns: 18px minmax(0, 1fr) auto; }
+  .fr-row { grid-template-columns: 24px 18px minmax(0, 1fr) 30px; height: 56px; }
+  .fr-table-head { display: none; }
   .fr-row-meta, .fr-row-time { display: none; }
 }
 `
@@ -372,6 +415,38 @@ window.__ModuleLoader__.load({
       const text = String(name || '')
       const dot = text.lastIndexOf('.')
       return dot > 0 && dot < text.length - 1 ? text.slice(dot + 1).toLowerCase() : ''
+    }
+
+    function fileIcon(name, kind) {
+      if (kind === 'directory') return '📁'
+      const extension = fileExtension(name)
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'avif', 'heic'].includes(extension)) return '🖼️'
+      if (['mp4', 'mov', 'm4v', 'avi', 'mkv', 'webm', 'ts'].includes(extension)) return '🎬'
+      if (['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg'].includes(extension)) return '🎵'
+      if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz'].includes(extension)) return '🗜️'
+      if (['pdf', 'doc', 'docx', 'txt', 'md', 'rtf', 'pages'].includes(extension)) return '📄'
+      if (['xls', 'xlsx', 'csv', 'numbers'].includes(extension)) return '📊'
+      if (['ppt', 'pptx', 'key'].includes(extension)) return '📽️'
+      if (['js', 'ts', 'jsx', 'tsx', 'json', 'html', 'css', 'py', 'go', 'rs', 'java', 'sh'].includes(extension)) return '🧾'
+      return '📄'
+    }
+
+    function imageFile(name) {
+      return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'avif', 'heic'].includes(fileExtension(name))
+    }
+
+    function formatGroupLabel(milliseconds, translate) {
+      const value = Number(milliseconds)
+      if (!Number.isFinite(value) || value <= 0) return ''
+      const date = new Date(value)
+      if (Number.isNaN(date.getTime())) return ''
+      const now = new Date()
+      const sameDay = (left, right) =>
+        left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth() && left.getDate() === right.getDate()
+      if (sameDay(date, now)) return translate('files.today')
+      const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+      if (sameDay(date, yesterday)) return translate('files.yesterday')
+      return new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' }).format(date)
     }
 
     function formatDiagnostic(event, translate) {
@@ -520,6 +595,11 @@ window.__ModuleLoader__.load({
       const [busy, setBusy] = React.useState(false)
       const [dialog, setDialog] = React.useState(null)
       const [search, setSearch] = React.useState('')
+      const [rowBusy, setRowBusy] = React.useState('')
+      const [freshPath, setFreshPath] = React.useState('')
+      const [selectedPaths, setSelectedPaths] = React.useState([])
+      const [scrollTop, setScrollTop] = React.useState(0)
+      const [viewportHeight, setViewportHeight] = React.useState(420)
       const [sort, setSort] = React.useState(() => {
         const allowed = ['time-desc', 'time-asc', 'name-asc', 'name-desc', 'size-desc', 'size-asc', 'type-asc']
         try {
@@ -536,10 +616,14 @@ window.__ModuleLoader__.load({
       const dialogAction = React.useRef(null)
       const noticeTimer = React.useRef(null)
       const lastUploadAt = React.useRef(null)
+      const freshTimer = React.useRef(null)
+      const listRef = React.useRef(null)
+      const selectAllRef = React.useRef(null)
 
       React.useEffect(
         () => () => {
           if (noticeTimer.current) clearTimeout(noticeTimer.current)
+          if (freshTimer.current) clearTimeout(freshTimer.current)
         },
         [],
       )
@@ -605,6 +689,10 @@ window.__ModuleLoader__.load({
             lastUploadAt.current = uploadAt
             if (!firstTime && next.lastUpload.name) {
               flash(translate('files.received').replace('{name}', next.lastUpload.name))
+              const uploadedPath = next.lastUpload.path || next.lastUpload.name
+              setFreshPath(uploadedPath)
+              if (freshTimer.current) clearTimeout(freshTimer.current)
+              freshTimer.current = setTimeout(() => setFreshPath(''), 3600)
             }
           }
         } catch (refreshError) {
@@ -736,6 +824,47 @@ window.__ModuleLoader__.load({
         )
       }
 
+      const runRowAction = async (item, operation) => {
+        setRowBusy(item.path)
+        setError('')
+        try {
+          await operation()
+        } catch (actionError) {
+          setError(actionError && actionError.message ? actionError.message : String(actionError))
+        } finally {
+          setRowBusy('')
+        }
+      }
+
+      const toggleSelect = (path) => {
+        setSelectedPaths((previous) => (previous.includes(path) ? previous.filter((value) => value !== path) : previous.concat(path)))
+      }
+
+      const toggleSelectAll = (items) => {
+        const paths = items.map((item) => item.path)
+        setSelectedPaths((previous) => (paths.every((path) => previous.includes(path)) ? previous.filter((path) => !paths.includes(path)) : Array.from(new Set(previous.concat(paths)))))
+      }
+
+      const deleteSelected = () => {
+        const paths = selectedPaths.slice()
+        if (paths.length === 0) return
+        askConfirm(
+          {
+            title: translate('files.batchDelete'),
+            message: translate('files.batchDeleteConfirm').replace('{n}', String(paths.length)),
+            confirmText: translate('files.batchDelete'),
+            danger: true,
+          },
+          () => {
+            act(async () => {
+              await request('/delete', postJson({ paths }))
+              setSelectedPaths([])
+              await loadListing(pathRef.current)
+            })
+          },
+        )
+      }
+
       const renameItem = (item) => {
         askText(
           {
@@ -745,7 +874,7 @@ window.__ModuleLoader__.load({
           },
           (next) => {
             if (!next || !next.trim() || next.trim() === item.name) return
-            act(async () => {
+            runRowAction(item, async () => {
               await request('/rename', postJson({ path: item.path, name: next }))
               await loadListing(pathRef.current)
             })
@@ -763,7 +892,7 @@ window.__ModuleLoader__.load({
             danger: true,
           },
           () => {
-            act(async () => {
+            runRowAction(item, async () => {
               await request('/delete', postJson({ paths: [item.path] }))
               await loadListing(pathRef.current)
             })
@@ -772,7 +901,7 @@ window.__ModuleLoader__.load({
       }
 
       const revealItem = (item) => {
-        act(async () => {
+        runRowAction(item, async () => {
           await request('/open', postJson({ path: item.path }))
         })
       }
@@ -837,20 +966,35 @@ window.__ModuleLoader__.load({
         }
         return sortAscending ? result : -result
       }
-      const visibleDirs = dirs.filter(matchesSearch).slice().sort(compareEntries)
+      const visibleDirs = dirs.filter(matchesSearch).slice().sort((left, right) =>
+        String(left.name || '').localeCompare(String(right.name || ''), 'zh-Hans-CN', { numeric: true, sensitivity: 'base' }),
+      )
       const visibleFiles = files.filter(matchesSearch).slice().sort(compareEntries)
       const visibleTotal = visibleDirs.length + visibleFiles.length
 
-      const crumbs = []
-      if (state) {
-        crumbs.push({ label: state.saveDirName || translate('files.root'), path: '' })
-        const parts = currentPath ? currentPath.split('/') : []
-        let accumulated = ''
-        for (const part of parts) {
-          accumulated = accumulated ? `${accumulated}/${part}` : part
-          crumbs.push({ label: part, path: accumulated })
-        }
-      }
+      React.useEffect(() => {
+        const available = new Set(dirs.concat(files).map((item) => item.path))
+        setSelectedPaths((previous) => {
+          const next = previous.filter((path) => available.has(path))
+          return next.length === previous.length ? previous : next
+        })
+      }, [listing])
+
+      React.useEffect(() => {
+        setScrollTop(0)
+        if (listRef.current) listRef.current.scrollTop = 0
+      }, [currentPath, search, sort])
+
+      React.useEffect(() => {
+        const node = listRef.current
+        if (!node) return undefined
+        const measure = () => setViewportHeight(node.clientHeight || 420)
+        measure()
+        if (typeof ResizeObserver === 'undefined') return undefined
+        const observer = new ResizeObserver(measure)
+        observer.observe(node)
+        return () => observer.disconnect()
+      }, [state])
 
       const renderName = (item) => {
         const extension = item.kind === 'directory' ? '' : fileExtension(item.name)
@@ -870,11 +1014,30 @@ window.__ModuleLoader__.load({
         setRowMenu({ item, left, top })
       }
 
-      const renderEntry = (item) =>
-        h(
+      const renderEntry = (item) => {
+        const isSelected = selectedPaths.includes(item.path)
+        const isBusy = rowBusy === item.path
+        return h(
           'div',
-          { key: item.path, className: 'fr-row' },
-          h('span', { className: 'fr-row-icon', 'aria-hidden': true }, item.kind === 'directory' ? '📁' : '📄'),
+          { key: item.path, className: 'fr-row' + (freshPath === item.path ? ' fr-row-new' : '') + (isBusy ? ' fr-row-busy' : '') },
+          h('input', {
+            type: 'checkbox',
+            className: 'fr-check',
+            checked: isSelected,
+            onChange: () => toggleSelect(item.path),
+            'aria-label': translate('files.selectAll') + ': ' + item.name,
+          }),
+          item.kind === 'file' && imageFile(item.name)
+            ? h(
+                'span',
+                { className: 'fr-thumb' },
+                h('img', {
+                  src: API + '/raw?path=' + encodeURIComponent(item.path),
+                  loading: 'lazy',
+                  alt: '',
+                }),
+              )
+            : h('span', { className: 'fr-row-icon', 'aria-hidden': true }, fileIcon(item.name, item.kind)),
           item.kind === 'directory'
             ? h('button', { type: 'button', className: 'fr-row-name fr-row-link', onClick: () => navigateTo(item.path), title: item.name }, renderName(item))
             : h('span', { className: 'fr-row-name', title: item.name }, renderName(item)),
@@ -889,14 +1052,79 @@ window.__ModuleLoader__.load({
                 type: 'button',
                 className: 'fr-more',
                 onClick: (event) => openRowMenu(event, item),
-                disabled: busy,
+                disabled: busy || isBusy,
                 'aria-label': translate('files.more'),
                 title: translate('files.more'),
               },
-              '⋯',
+              isBusy ? '…' : '⋯',
             ),
           ),
         )
+      }
+
+      const listRows = []
+      if (visibleDirs.length > 0) {
+        listRows.push({ type: 'group', key: 'group-folders', label: translate('files.groupFolders') })
+        for (const item of visibleDirs) listRows.push({ type: 'row', key: item.path, item })
+      }
+      if (visibleFiles.length > 0) {
+        if (sortKey === 'time') {
+          let lastDay = ''
+          for (const item of visibleFiles) {
+            const date = new Date(item.mtime || 0)
+            const day = Number.isNaN(date.getTime())
+              ? 'unknown'
+              : `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+            if (day !== lastDay) {
+              listRows.push({ type: 'group', key: 'group-' + day, label: formatGroupLabel(item.mtime, translate) })
+              lastDay = day
+            }
+            listRows.push({ type: 'row', key: item.path, item })
+          }
+        } else {
+          for (const item of visibleFiles) listRows.push({ type: 'row', key: item.path, item })
+        }
+      }
+
+      const ROW_HEIGHT = 56
+      const GROUP_HEIGHT = 32
+      const rowEnds = []
+      let listHeight = 0
+      for (const row of listRows) {
+        listHeight += row.type === 'group' ? GROUP_HEIGHT : ROW_HEIGHT
+        rowEnds.push(listHeight)
+      }
+      const virtual = listRows.length > 160
+      const findRowIndex = (offset) => {
+        let low = 0
+        let high = rowEnds.length
+        while (low < high) {
+          const middle = Math.floor((low + high) / 2)
+          if (rowEnds[middle] <= offset) low = middle + 1
+          else high = middle
+        }
+        return low
+      }
+      const startIndex = virtual ? findRowIndex(Math.max(0, scrollTop - 120)) : 0
+      let renderStart = Math.min(startIndex, listRows.length - 1)
+      while (renderStart > 0 && listRows[renderStart].type !== 'group') renderStart -= 1
+      const endIndex = virtual ? findRowIndex(scrollTop + viewportHeight + 240) : listRows.length
+      const paddingTop = virtual && renderStart > 0 ? rowEnds[renderStart - 1] : 0
+      const paddingBottom = virtual && endIndex < rowEnds.length ? listHeight - rowEnds[endIndex - 1] : 0
+      const renderedRows = virtual ? listRows.slice(renderStart, endIndex) : listRows
+      const allVisibleItems = visibleDirs.concat(visibleFiles)
+      const selectedCount = selectedPaths.length
+      const allVisibleSelected = allVisibleItems.length > 0 && allVisibleItems.every((item) => selectedPaths.includes(item.path))
+      const someVisibleSelected = allVisibleItems.some((item) => selectedPaths.includes(item.path))
+
+      React.useEffect(() => {
+        if (selectAllRef.current) selectAllRef.current.indeterminate = someVisibleSelected && !allVisibleSelected
+      }, [someVisibleSelected, allVisibleSelected])
+
+      const renderListRow = (row) =>
+        row.type === 'group'
+          ? h('div', { key: row.key, className: 'fr-group' }, h('b', null, row.label))
+          : renderEntry(row.item)
 
       const wifiGlyph = h(
         'svg',
@@ -1002,6 +1230,7 @@ window.__ModuleLoader__.load({
         h('span', { className: 'fr-save-chevron' }, '›'),
       )
 
+      const parentPath = currentPath ? currentPath.split('/').slice(0, -1).join('/') : ''
       const filesCard = h(
         'section',
         { className: 'fr-card fr-card-files' },
@@ -1012,21 +1241,12 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'fr-actions' },
+            currentPath
+              ? h('button', { type: 'button', className: 'fr-btn', onClick: () => navigateTo(parentPath), disabled: busy }, '↑ ' + translate('files.up'))
+              : null,
             h('button', { type: 'button', className: 'fr-btn', onClick: createFolder, disabled: busy }, translate('files.newFolder')),
             h('button', { type: 'button', className: 'fr-btn', onClick: openCurrentDir, disabled: busy }, translate('files.openFolder')),
             h('button', { type: 'button', className: 'fr-btn', onClick: () => refresh(pathRef.current), disabled: busy }, translate('common.refresh')),
-          ),
-        ),
-        h(
-          'nav',
-          { className: 'fr-crumbs', 'aria-label': 'breadcrumb' },
-          crumbs.map((crumb, index) =>
-            h(
-              'span',
-              { key: crumb.path || 'root', className: 'fr-crumb-item' },
-              index > 0 ? h('span', { className: 'fr-crumb-sep' }, '/') : null,
-              h('button', { type: 'button', className: 'fr-crumb', onClick: () => navigateTo(crumb.path) }, crumb.label),
-            ),
           ),
         ),
         h(
@@ -1061,12 +1281,51 @@ window.__ModuleLoader__.load({
             h('option', { value: 'type-asc' }, translate('files.sortType')),
           ),
         ),
+        selectedCount > 0
+          ? h(
+              'div',
+              { className: 'fr-selection-bar' },
+              h('span', null, translate('files.selectedCount').replace('{n}', String(selectedCount))),
+              h('button', { type: 'button', className: 'fr-link', onClick: () => setSelectedPaths([]) }, translate('files.clearSelection')),
+              h('button', { type: 'button', className: 'fr-btn fr-btn-danger', onClick: deleteSelected, disabled: busy }, translate('files.batchDelete')),
+            )
+          : null,
         h(
           'div',
-          { className: 'fr-list' },
+          { className: 'fr-table-head' },
+          h('input', {
+            ref: selectAllRef,
+            type: 'checkbox',
+            className: 'fr-check',
+            checked: allVisibleSelected,
+            onChange: () => toggleSelectAll(allVisibleItems),
+            disabled: allVisibleItems.length === 0,
+            'aria-label': translate('files.selectAll'),
+            title: translate('files.selectAll'),
+          }),
+          h('span'),
+          h('span', null, translate('files.colName')),
+          h('span', { className: 'fr-col-size' }, translate('files.colSize')),
+          h('span', { className: 'fr-col-time' }, translate('files.colTime')),
+          h('span'),
+        ),
+        h(
+          'div',
+          { className: 'fr-list', ref: listRef, onScroll: (event) => setScrollTop(event.currentTarget.scrollTop) },
           visibleTotal === 0
-            ? h('div', { className: 'fr-empty' }, searchNeedle ? translate('files.noMatch') : translate('common.empty'))
-            : visibleDirs.map(renderEntry).concat(visibleFiles.map(renderEntry)),
+            ? h(
+                'div',
+                { className: 'fr-empty' },
+                h('span', { className: 'fr-empty-icon', 'aria-hidden': true }, searchNeedle ? '🔍' : '📥'),
+                h('strong', null, searchNeedle ? translate('files.noMatch') : translate('files.emptyTitle')),
+                h('span', null, searchNeedle ? translate('files.noMatchHint') : translate('files.emptyHint')),
+                searchNeedle ? h('button', { type: 'button', className: 'fr-btn', onClick: () => setSearch('') }, translate('files.clearSearch')) : null,
+              )
+            : [
+                paddingTop > 0 ? h('div', { key: 'pad-top', style: { height: paddingTop } }) : null,
+                ...renderedRows.map(renderListRow),
+                paddingBottom > 0 ? h('div', { key: 'pad-bottom', style: { height: paddingBottom } }) : null,
+              ],
         ),
         h(
           'div',

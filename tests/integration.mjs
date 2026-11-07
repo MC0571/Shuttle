@@ -9,7 +9,7 @@
 import http from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
-import { mkdtemp, readFile, readdir, rm, stat } from 'node:fs/promises'
+import { mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
 
 const pluginUrl = new URL('../index.js', import.meta.url).href
 const mod = await import(pluginUrl + '?t=' + Date.now())
@@ -207,6 +207,16 @@ try {
   const listing = await listResponse.json()
   check('admin list shows files', listResponse.ok && listing.files.some((item) => item.name === 'hello world.txt'))
   check('admin list shows dirs', listing.dirs.some((item) => item.path === '旅行'))
+  await writeFile(path.join(tmp, 'thumb.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]))
+  const rawResponse = await fetch(`${adminBase}/shuttle/api/raw?path=thumb.png`)
+  check('admin raw returns image content type', rawResponse.ok && rawResponse.headers.get('content-type') === 'image/png')
+  const rawTraversal = await fetch(`${adminBase}/shuttle/api/raw?path=${encodeURIComponent('../outside.png')}`)
+  check('admin raw refuses traversal', rawTraversal.status === 400)
+  await fetch(`${adminBase}/shuttle/api/delete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paths: ['thumb.png'] }),
+  })
 
   const mkdirResponse = await fetch(`${adminBase}/shuttle/api/mkdir`, {
     method: 'POST',
