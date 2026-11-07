@@ -106,9 +106,9 @@ try {
   check('save target hides itself for a root-only listing', wechatText.includes('dirs.length <= 1'))
   check('save target renders directory options dynamically', wechatText.includes('renderDirOptions') && wechatText.includes('dir-option'))
   check('save target root shows folder name with absolute path', wechatText.includes('var SAVE_DIR =') && wechatText.includes('SAVE_DIR_NAME'))
-  check('save target expresses nesting with indentation rails', wechatText.includes('dir-rail') && wechatText.includes('data-depth'))
-  check('save target nests first-level dirs and collapses deeper ones', wechatText.includes('dir-toggle') && wechatText.includes('childGroup.hidden = true') && wechatText.includes('depth > 0'))
-  check('save target root row always visible', wechatText.includes('rootBuilt.group.hidden = false'))
+  check('save target expresses nesting with indentation', wechatText.includes('data-depth') && wechatText.includes('depth * 22'))
+  check('save target nests first-level dirs and collapses deeper ones', wechatText.includes('dir-toggle') && wechatText.includes('childGroup.hidden = true') && wechatText.includes('dir-toggle-slot'))
+  check('save target root row always visible', wechatText.includes('rootBuilt.setOpen(true)'))
   check(
     'normal page shows photo and file entries',
     pageText.includes('accept="image/*,video/*"') && pageText.includes('id="files"') && pageText.includes('id="photos"') && !pageText.includes('id="compat"'),
