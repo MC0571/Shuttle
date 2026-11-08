@@ -452,14 +452,19 @@ window.__ModuleLoader__.load({
   .fr-row-meta, .fr-row-time, .fr-row-source { display: none; }
 }
 .fr-library-card { display: flex; flex-direction: column; flex: 1; min-height: 0; background: var(--dsw-alias-bg-layer-1); border: 1px solid var(--dsw-alias-border-l1); border-radius: 18px; overflow: hidden; }
-.fr-library-tabs { display: flex; align-items: center; gap: 4px; padding: 14px 18px 0; }
-.fr-library-tab { appearance: none; border: none; background: transparent; color: var(--dsw-alias-label-secondary); font-family: inherit; font-size: 14px; font-weight: 600; padding: 8px 12px; border-radius: 10px; cursor: pointer; }
+.fr-library-tabs { display: none; }
+.fr-library-nav { display: flex; align-items: stretch; gap: 8px; flex: none; padding: 8px 20px 10px; border-top: 1px solid var(--dsw-alias-border-l1); background: var(--dsw-alias-bg-layer-1); }
+.fr-library-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; appearance: none; border: none; background: transparent; color: var(--dsw-alias-label-secondary); font-family: inherit; font-size: 11.5px; font-weight: 600; padding: 6px 10px; border-radius: 12px; cursor: pointer; }
 .fr-library-tab:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
 .fr-library-tab.active { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
-.fr-library-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 20px 14px; }
+.fr-library-tab-icon { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; }
+.fr-library-tab.active .fr-library-tab-icon { width: 26px; height: 26px; background: var(--dsw-alias-label-primary); color: var(--dsw-alias-bg-layer-1); }
+.fr-library-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px 14px; }
 .fr-library-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .fr-library-title h2 { margin: 0; font-size: 30px; line-height: 1.08; font-weight: 720; letter-spacing: -.025em; color: var(--dsw-alias-label-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fr-library-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.fr-library-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.fr-icon-btn { width: 34px; height: 34px; padding: 0; display: inline-grid; place-items: center; color: var(--dsw-alias-label-secondary); }
+.fr-icon-btn:hover:not(:disabled) { color: var(--dsw-alias-label-primary); }
 .fr-library-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 0 20px 14px; }
 .fr-library-toolbar .fr-search { flex: 1 1 210px; }
 .fr-library-select { flex: 0 1 130px; appearance: none; border: 1px solid var(--dsw-alias-border-l1); background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-secondary); border-radius: 9px; padding: 7px 9px; font-size: 12px; font-family: inherit; }
@@ -2075,33 +2080,68 @@ window.__ModuleLoader__.load({
         ),
       )
 
+      const recentIcon = h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true },
+        h('circle', { cx: 12, cy: 12, r: 8.2 }),
+        h('path', { d: 'M12 7.2v5.1l3.3 2' }),
+      )
+      const browseIcon = h('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true },
+        h('path', { d: 'M3.5 6.8a1.7 1.7 0 0 1 1.7-1.7h4l1.8 2.2h7.8a1.7 1.7 0 0 1 1.7 1.7v8.2a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7z' }),
+      )
       const recentTab = h('button', {
         type: 'button',
         className: 'fr-library-tab' + (isHome ? ' active' : ''),
         onClick: () => { if (!isHome) backToHome() },
-      }, translate('files.recentTitle'))
+      }, h('span', { className: 'fr-library-tab-icon' }, recentIcon), h('span', null, translate('files.recentTitle')))
 
       const browseTab = h('button', {
         type: 'button',
         className: 'fr-library-tab' + (!isHome ? ' active' : ''),
-        onClick: () => { if (isHome) navigateTo('') },
-      }, translate('files.browseTitle'))
+        onClick: () => { if (isHome) navigateTo(''); else if (currentPath) navigateTo('') },
+      }, h('span', { className: 'fr-library-tab-icon' }, browseIcon), h('span', null, translate('files.browseTitle')))
+
+      const actionIcon = (kind) => {
+        if (kind === 'new-folder') {
+          return h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true },
+            h('path', { d: 'M3.5 6.8a1.7 1.7 0 0 1 1.7-1.7h4l1.8 2.2h7.8a1.7 1.7 0 0 1 1.7 1.7v8.2a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7z' }),
+            h('path', { d: 'M12 11v5M9.5 13.5h5' }),
+          )
+        }
+        if (kind === 'open-folder') {
+          return h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true },
+            h('path', { d: 'M3.5 6.8a1.7 1.7 0 0 1 1.7-1.7h4l1.8 2.2h7.8a1.7 1.7 0 0 1 1.7 1.7v8.2a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7z' }),
+            h('path', { d: 'M14.5 12.5l2.5-2.5 2.5 2.5M17 10v5' }),
+          )
+        }
+        return h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true },
+          h('path', { d: 'M20 11a8 8 0 1 0-2.3 5.6' }),
+          h('path', { d: 'M20 5v6h-6' }),
+        )
+      }
+
+      const libraryAction = (kind, label, onClick, disabled) => h('button', {
+        type: 'button',
+        className: 'fr-btn fr-icon-btn',
+        onClick,
+        disabled,
+        title: label,
+        'aria-label': label,
+      }, actionIcon(kind))
 
       const libraryCard = h('section', { className: 'fr-library-card' },
-        h('div', { className: 'fr-library-tabs' }, recentTab, browseTab),
         h('div', { className: 'fr-library-head' },
           h('div', { className: 'fr-library-title' },
             !isHome ? h('button', { type: 'button', className: 'fr-back', onClick: backToHome, title: translate('files.back'), 'aria-label': translate('files.back') }, '←') : null,
             h('h2', null, isHome ? translate('files.recentTitle') : (currentPath ? currentPath.split('/').pop() : translate('files.browseTitle'))),
           ),
           h('div', { className: 'fr-library-actions' },
-            !isHome ? h('button', { type: 'button', className: 'fr-btn', onClick: createFolder, disabled: busy }, translate('files.newFolder')) : null,
-            !isHome ? h('button', { type: 'button', className: 'fr-btn', onClick: openCurrentDir, disabled: busy }, translate('files.openFolder')) : null,
-            h('button', { type: 'button', className: 'fr-btn', onClick: () => refresh(pathRef.current), disabled: busy }, translate('common.refresh')),
+            !isHome ? libraryAction('new-folder', translate('files.newFolder'), createFolder, busy) : null,
+            !isHome ? libraryAction('open-folder', translate('files.openFolder'), openCurrentDir, busy) : null,
+            libraryAction('refresh', translate('common.refresh'), () => refresh(pathRef.current), busy),
           ),
         ),
         isHome ? recentToolbar : browseToolbar,
         isHome ? recentView : browseView,
+        h('div', { className: 'fr-library-nav' }, recentTab, browseTab),
       )
 
       return h(
