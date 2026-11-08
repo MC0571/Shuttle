@@ -471,6 +471,7 @@ window.__ModuleLoader__.load({
 .fr-library-title { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; overflow: hidden; }
 .fr-library-title h2 { margin: 0; font-size: 30px; line-height: 1.08; font-weight: 720; letter-spacing: -.025em; color: var(--dsw-alias-label-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fr-library-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; flex: none; }
+.fr-library-action-row { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 0 20px 12px; flex: none; }
 .fr-breadcrumb { display: flex; align-items: center; gap: 1px; min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 2px 0; }
 .fr-breadcrumb::-webkit-scrollbar { display: none; }
 .fr-crumb { flex: none; display: inline-flex; align-items: center; gap: 5px; max-width: 180px; padding: 4px 6px; border: none; border-radius: 7px; background: transparent; color: var(--dsw-alias-label-secondary); font-family: inherit; font-size: 19px; font-weight: 600; line-height: 1.2; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -2224,19 +2225,24 @@ window.__ModuleLoader__.load({
         }),
       )
 
+      const refreshButton = h('button', { type: 'button', className: 'fr-btn', onClick: () => refresh(pathRef.current), disabled: busy }, translate('common.refresh'))
+      const browseActions = !isHome
+        ? h('div', { className: 'fr-library-action-row' },
+            h('button', { type: 'button', className: 'fr-btn fr-dir-switch', onClick: openDirSwitchMenu, disabled: busy || folders.length === 0 }, translate('files.switchDir')),
+            h('button', { type: 'button', className: 'fr-btn', onClick: createFolder, disabled: busy }, translate('files.newFolder')),
+            h('button', { type: 'button', className: 'fr-btn', onClick: openCurrentDir, disabled: busy }, translate('files.openFolder')),
+            refreshButton,
+          )
+        : null
       const libraryCard = h('section', { className: 'fr-library-card' },
         h('div', { className: 'fr-library-head' },
           h('div', { className: 'fr-library-title' },
             !isHome ? h('button', { type: 'button', className: 'fr-back', onClick: backToHome, title: translate('files.back'), 'aria-label': translate('files.back') }, '←') : null,
             isHome ? h('h2', null, translate('files.recentTitle')) : breadcrumb,
           ),
-          h('div', { className: 'fr-library-actions' },
-            !isHome ? h('button', { type: 'button', className: 'fr-btn fr-dir-switch', onClick: openDirSwitchMenu, disabled: busy || folders.length === 0 }, translate('files.switchDir')) : null,
-            !isHome ? h('button', { type: 'button', className: 'fr-btn', onClick: createFolder, disabled: busy }, translate('files.newFolder')) : null,
-            !isHome ? h('button', { type: 'button', className: 'fr-btn', onClick: openCurrentDir, disabled: busy }, translate('files.openFolder')) : null,
-            h('button', { type: 'button', className: 'fr-btn', onClick: () => refresh(pathRef.current), disabled: busy }, translate('common.refresh')),
-          ),
+          isHome ? h('div', { className: 'fr-library-actions' }, refreshButton) : null,
         ),
+        browseActions,
         isHome ? recentToolbar : browseToolbar,
         isHome ? recentView : browseView,
         h('div', { className: 'fr-library-nav' }, recentTab, browseTab),
