@@ -129,6 +129,8 @@ window.__ModuleLoader__.load({
       'files.folderAreaActions': '文件夹区域操作',
       'files.copyPath': '复制路径',
       'files.pathCopied': '路径已复制',
+      'files.switchDir': '切换目录',
+      'files.rootDir': '根目录',
       'files.groupCount': '{label} | {n} 项',
       'files.childCount': '{n} 项',
       'files.newBadge': '新',
@@ -258,6 +260,8 @@ window.__ModuleLoader__.load({
       'files.folderAreaActions': 'Folder area actions',
       'files.copyPath': 'Copy path',
       'files.pathCopied': 'Path copied',
+      'files.switchDir': 'Switch folder',
+      'files.rootDir': 'Root',
       'files.groupCount': '{label} | {n} items',
       'files.childCount': '{n} items',
       'files.newBadge': 'NEW',
@@ -464,9 +468,22 @@ window.__ModuleLoader__.load({
 .fr-library-tab-icon { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; }
 .fr-library-tab.active .fr-library-tab-icon { width: 26px; height: 26px; background: var(--dsw-alias-label-primary); color: var(--dsw-alias-bg-layer-1); }
 .fr-library-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px 14px; }
-.fr-library-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.fr-library-title { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; overflow: hidden; }
 .fr-library-title h2 { margin: 0; font-size: 30px; line-height: 1.08; font-weight: 720; letter-spacing: -.025em; color: var(--dsw-alias-label-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fr-library-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.fr-library-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; flex: none; }
+.fr-breadcrumb { display: flex; align-items: center; gap: 1px; min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 2px 0; }
+.fr-breadcrumb::-webkit-scrollbar { display: none; }
+.fr-crumb { flex: none; display: inline-flex; align-items: center; gap: 5px; max-width: 180px; padding: 4px 6px; border: none; border-radius: 7px; background: transparent; color: var(--dsw-alias-label-secondary); font-family: inherit; font-size: 19px; font-weight: 600; line-height: 1.2; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fr-crumb:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+.fr-crumb.current { color: var(--dsw-alias-label-primary); font-weight: 700; cursor: default; }
+.fr-crumb.current:hover { background: transparent; }
+.fr-crumb-root { font-size: 18px; }
+.fr-crumb-sep { flex: none; color: var(--dsw-alias-label-tertiary, var(--dsw-alias-label-secondary)); font-size: 19px; line-height: 1; }
+.fr-dir-menu { position: fixed; z-index: 71; width: 240px; max-height: 360px; overflow-y: auto; padding: 5px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 10px; background: var(--dsw-alias-bg-overlay); box-shadow: 0 12px 36px rgba(15, 23, 42, .22); }
+.fr-dir-menu-icon { flex: none; width: 20px; height: 20px; display: inline-grid; place-items: center; }
+.fr-dir-menu-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fr-dir-menu .fr-menu-item { display: flex; align-items: center; gap: 8px; }
+.fr-dir-menu .fr-menu-item.active { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-brand-primary); }
 .fr-library-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 0 20px 14px; }
 .fr-library-toolbar .fr-search { flex: 1 1 210px; }
 .fr-library-select { flex: 0 1 130px; appearance: none; border: 1px solid var(--dsw-alias-border-l1); background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-secondary); border-radius: 9px; padding: 7px 9px; font-size: 12px; font-family: inherit; }
@@ -871,6 +888,7 @@ window.__ModuleLoader__.load({
       })
       const [rowMenu, setRowMenu] = React.useState(null)
       const [folderAreaMenu, setFolderAreaMenu] = React.useState(null)
+      const [dirSwitchMenu, setDirSwitchMenu] = React.useState(null)
       const [folderSeen, setFolderSeen] = React.useState(() => {
         try {
           const parsed = JSON.parse(localStorage.getItem('shuttle.folderSeen') || '{}')
@@ -940,6 +958,22 @@ window.__ModuleLoader__.load({
           document.removeEventListener('scroll', close, true)
         }
       }, [folderAreaMenu])
+
+      React.useEffect(() => {
+        if (!dirSwitchMenu) return undefined
+        const close = () => setDirSwitchMenu(null)
+        const onKey = (event) => {
+          if (event.key === 'Escape') close()
+        }
+        window.addEventListener('keydown', onKey)
+        window.addEventListener('resize', close)
+        document.addEventListener('scroll', close, true)
+        return () => {
+          window.removeEventListener('keydown', onKey)
+          window.removeEventListener('resize', close)
+          document.removeEventListener('scroll', close, true)
+        }
+      }, [dirSwitchMenu])
 
       const flash = (text) => {
         setNotice(text)
@@ -1150,6 +1184,7 @@ window.__ModuleLoader__.load({
             try { localStorage.removeItem('shuttle.lastBrowsePath') } catch { /* 忽略 */ }
             await loadListing('')
           }
+          await loadFolders().catch(() => {})
         })
       }
 
@@ -1484,6 +1519,20 @@ window.__ModuleLoader__.load({
         const left = Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8))
         const top = rect.bottom + height + 8 > window.innerHeight ? Math.max(8, rect.top - height - 4) : rect.bottom + 4
         setFolderAreaMenu({ left, top })
+      }
+
+      const openDirSwitchMenu = (event) => {
+        const rect = event.currentTarget.getBoundingClientRect()
+        const width = 240
+        const height = Math.min(360, 46 + (folders.length + 1) * 36)
+        const left = Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8))
+        const top = rect.bottom + height + 8 > window.innerHeight ? Math.max(8, rect.top - height - 4) : rect.bottom + 4
+        setDirSwitchMenu({ left, top })
+      }
+
+      const selectSwitchDir = (target) => {
+        setDirSwitchMenu(null)
+        navigateTo(target)
       }
 
       const renderEntry = (item) => {
@@ -2146,13 +2195,43 @@ window.__ModuleLoader__.load({
         onClick: () => { if (isHome) enterBrowseDefault() },
       }, h('span', { className: 'fr-library-tab-icon' }, browseIcon), h('span', null, translate('files.browseTitle')))
 
+      const breadcrumbSegments = currentPath ? currentPath.split('/').filter(Boolean) : []
+      const breadcrumb = h('nav', { className: 'fr-breadcrumb', 'aria-label': '相对路径' },
+        h('button', {
+          type: 'button',
+          className: 'fr-crumb fr-crumb-root' + (breadcrumbSegments.length === 0 ? ' current' : ''),
+          onClick: () => navigateTo(''),
+          title: './',
+        },
+          h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true },
+            h('path', { d: 'M3.5 10.5L12 3.5l8.5 7' }),
+            h('path', { d: 'M5.5 9.5v9a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5v-9' }),
+          ),
+          h('span', null, './'),
+        ),
+        breadcrumbSegments.map((segment, index) => {
+          const target = breadcrumbSegments.slice(0, index + 1).join('/')
+          const isCurrent = index === breadcrumbSegments.length - 1
+          return h(React.Fragment, { key: target },
+            h('span', { className: 'fr-crumb-sep', 'aria-hidden': true }, '›'),
+            h('button', {
+              type: 'button',
+              className: 'fr-crumb' + (isCurrent ? ' current' : ''),
+              onClick: () => navigateTo(target),
+              title: './' + target,
+            }, segment),
+          )
+        }),
+      )
+
       const libraryCard = h('section', { className: 'fr-library-card' },
         h('div', { className: 'fr-library-head' },
           h('div', { className: 'fr-library-title' },
             !isHome ? h('button', { type: 'button', className: 'fr-back', onClick: backToHome, title: translate('files.back'), 'aria-label': translate('files.back') }, '←') : null,
-            h('h2', null, isHome ? translate('files.recentTitle') : (currentPath ? currentPath.split('/').pop() : translate('files.browseTitle'))),
+            isHome ? h('h2', null, translate('files.recentTitle')) : breadcrumb,
           ),
           h('div', { className: 'fr-library-actions' },
+            !isHome ? h('button', { type: 'button', className: 'fr-btn fr-dir-switch', onClick: openDirSwitchMenu, disabled: busy || folders.length === 0 }, translate('files.switchDir')) : null,
             !isHome ? h('button', { type: 'button', className: 'fr-btn', onClick: createFolder, disabled: busy }, translate('files.newFolder')) : null,
             !isHome ? h('button', { type: 'button', className: 'fr-btn', onClick: openCurrentDir, disabled: busy }, translate('files.openFolder')) : null,
             h('button', { type: 'button', className: 'fr-btn', onClick: () => refresh(pathRef.current), disabled: busy }, translate('common.refresh')),
@@ -2211,6 +2290,51 @@ window.__ModuleLoader__.load({
                 networkCard,
               ),
               h('div', { className: 'fr-main' }, libraryCard),
+            )
+          : null,
+        dirSwitchMenu
+          ? h(
+              'div',
+              { className: 'fr-menu-overlay', onMouseDown: () => setDirSwitchMenu(null) },
+              h(
+                'div',
+                {
+                  className: 'fr-dir-menu',
+                  role: 'menu',
+                  style: { left: dirSwitchMenu.left, top: dirSwitchMenu.top },
+                  onMouseDown: (event) => event.stopPropagation(),
+                },
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'fr-menu-item' + (!currentPath ? ' active' : ''),
+                    role: 'menuitem',
+                    onClick: () => selectSwitchDir(''),
+                  },
+                  h('span', { className: 'fr-dir-menu-icon' },
+                    h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true },
+                      h('path', { d: 'M3.5 10.5L12 3.5l8.5 7' }),
+                      h('path', { d: 'M5.5 9.5v9a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5v-9' }),
+                    ),
+                  ),
+                  h('span', null, './ ' + translate('files.rootDir')),
+                ),
+                folders.map((folder) => {
+                  const active = currentPath === folder.path || currentPath.startsWith(folder.path + '/')
+                  return h('button', {
+                      key: folder.path,
+                      type: 'button',
+                      className: 'fr-menu-item' + (active ? ' active' : ''),
+                      role: 'menuitem',
+                      onClick: () => selectSwitchDir(folder.path),
+                      title: './' + folder.path,
+                    },
+                    h('span', { className: 'fr-dir-menu-icon' }, h(FileTypeIcon, { name: folder.name, kind: 'directory', size: 17 })),
+                    h('span', { className: 'fr-dir-menu-name' }, folder.name),
+                  )
+                }),
+              ),
             )
           : null,
         folderAreaMenu
