@@ -533,8 +533,9 @@ window.__ModuleLoader__.load({
 .fr-browse-media { position: relative; width: 52px; height: 52px; display: grid; place-items: center; }
 .fr-browse-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .fr-browse-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
-.fr-browse-name { color: var(--dsw-alias-label-primary); font-size: 14px; font-weight: 600; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
-.fr-browse-meta { color: var(--dsw-alias-label-secondary); font-size: 11.5px; line-height: 1.3; }
+.fr-browse-name { color: var(--dsw-alias-label-primary); font-size: 14px; font-weight: 600; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.fr-browse-meta { display: flex; align-items: center; gap: 5px; color: var(--dsw-alias-label-secondary); font-size: 11.5px; line-height: 1.3; }
+.fr-file-type-tag { display: inline-flex; align-items: center; padding: 1px 4px; border-radius: 4px; background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-secondary); font-size: 9.5px; font-weight: 650; letter-spacing: .02em; }
 .fr-browse-more { flex: none; width: 26px; height: 26px; border: none; border-radius: 7px; background: transparent; color: var(--dsw-alias-label-secondary); font-size: 16px; line-height: 1; cursor: pointer; }
 .fr-browse-more:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
 .fr-browse-chevron { flex: none; color: var(--dsw-alias-label-secondary); font-size: 24px; line-height: 1; font-weight: 300; }
@@ -640,6 +641,12 @@ window.__ModuleLoader__.load({
       const text = String(name || '')
       const dot = text.lastIndexOf('.')
       return dot > 0 && dot < text.length - 1 ? text.slice(dot + 1).toLowerCase() : ''
+    }
+
+    function fileBaseName(name) {
+      const text = String(name || '')
+      const extension = fileExtension(text)
+      return extension ? text.slice(0, text.length - extension.length - 1) : text
     }
 
     function fileCategory(name, kind) {
@@ -2088,7 +2095,6 @@ window.__ModuleLoader__.load({
           ),
         ),
         renderItemMore(item, 'fr-browse-more'),
-        h('span', { className: 'fr-browse-chevron', 'aria-hidden': true }, '›'),
       )
 
       const renderBrowseFile = (item) => h('div', {
@@ -2107,8 +2113,13 @@ window.__ModuleLoader__.load({
         },
         h('span', { className: 'fr-browse-icon' }, renderMediaPreview(item, 'fr-browse-media')),
         h('span', { className: 'fr-browse-main' },
-          h('span', { className: 'fr-browse-name' }, renderName(item)),
-          h('span', { className: 'fr-browse-meta' }, formatFileTime(item.mtime, translate), ' · ', formatSize(item.size)),
+          h('span', { className: 'fr-browse-name' }, fileBaseName(item.name)),
+          h('span', { className: 'fr-browse-meta' },
+            formatFileTime(item.mtime, translate),
+            ' · ',
+            formatSize(item.size),
+            fileExtension(item.name) ? h('span', { className: 'fr-file-type-tag' }, fileExtension(item.name).toUpperCase()) : null,
+          ),
         ),
         renderItemMore(item, 'fr-browse-more'),
       )
@@ -2297,11 +2308,8 @@ window.__ModuleLoader__.load({
           )
         }
         if (kind === 'filter') {
-          return h('svg', { width: 19, height: 19, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', 'aria-hidden': true },
-            h('path', { d: 'M4 7h16M7 12h10M10 17h4' }),
-            h('circle', { cx: 8, cy: 7, r: 2, fill: 'var(--dsw-alias-bg-layer-1)' }),
-            h('circle', { cx: 15, cy: 12, r: 2, fill: 'var(--dsw-alias-bg-layer-1)' }),
-            h('circle', { cx: 12, cy: 17, r: 2, fill: 'var(--dsw-alias-bg-layer-1)' }),
+          return h('svg', { width: 19, height: 19, viewBox: '0 0 1024 1024', fill: 'currentColor', 'aria-hidden': true },
+            h('path', { d: 'M639.573333 125.013333c-54.058667 0-104.533333 35.498667-120.234666 85.418667L170.24 210.346667a42.666667 42.666667 0 0 0 0 85.333333l349.013333-0.042667c19.157333 52.266667 66.218667 85.333333 120.32 85.333334 54.101333 0 101.632-33.152 121.088-85.674667l92.245334 0.384a42.666667 42.666667 0 0 0 0-85.333333h-92.586667c-20.565333-52.053333-66.688-85.333333-120.746667-85.333334z m0 85.333334a42.666667 42.666667 0 1 1 0 85.333333 42.666667 42.666667 0 0 1 0-85.333333z m-256 170.666666c-56.192 0-103.253333 34.986667-120.448 85.418667-5.973333 0.384-92.842667-0.085333-92.842666-0.085333a42.666667 42.666667 0 0 0 0 85.333333s87.552-0.896 93.013333-0.341333a126.037333 126.037333 0 0 0 120.32 85.674666c54.101333 0 100.437333-33.152 120.746667-85.205333l348.586666-0.128a42.666667 42.666667 0 0 0 0-85.333333l-348.842666-0.426667A128.512 128.512 0 0 0 383.573333 381.013333z m0 85.333334a42.666667 42.666667 0 1 1 0 85.333333 42.666667 42.666667 0 0 1 0-85.333333z m256 170.666666c-54.058667 0-103.552 35.626667-120.277333 84.906667l-349.013333 0.426667a42.666667 42.666667 0 0 0 0 85.333333h348.373333a128.853333 128.853333 0 0 0 120.96 85.333333c54.101333 0 100.693333-33.834667 121.258667-85.333333h92.074666a42.666667 42.666667 0 0 0 0-85.333333l-92.458666-0.256a129.450667 129.450667 0 0 0-120.874667-85.077334z m0 85.333334a42.666667 42.666667 0 1 1 0 85.333333 42.666667 42.666667 0 0 1 0-85.333333z' }),
           )
         }
         return h('svg', { width: 19, height: 19, viewBox: '0 0 24 24', fill: 'currentColor', 'aria-hidden': true },
