@@ -9,7 +9,7 @@
 import http from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
-import { mkdtemp, readFile, readdir, rm, stat } from 'node:fs/promises'
+import { mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
 
 const pluginUrl = new URL('../index.js', import.meta.url).href
 const mod = await import(pluginUrl + '?t=' + Date.now())
@@ -102,6 +102,13 @@ try {
   check('file input declares wildcard accept', wechatText.includes('accept="*/*"'))
   check('browser file entry declares document accept', pageText.includes('application/pdf') && pageText.includes('.docx'))
   check('phone page pinned to light theme', !wechatText.includes('prefers-color-scheme') && wechatText.includes('color-scheme: light'))
+  check('save target starts hidden and uses a bottom sheet', wechatText.includes('id="target-card" hidden') && wechatText.includes('id="dir-sheet"') && !wechatText.includes('<select id="dir"'))
+  check('save target hides itself for a root-only listing', wechatText.includes('dirs.length <= 1'))
+  check('save target renders directory options dynamically', wechatText.includes('renderDirOptions') && wechatText.includes('dir-option'))
+  check('save target defaults to the 默认 folder', wechatText.includes('var DEFAULT_DIR_NAME =') && wechatText.includes('var selectedDir = DEFAULT_DIR_NAME'))
+  check('save target expresses nesting with indentation', wechatText.includes('data-depth') && wechatText.includes('depth * 22'))
+  check('save target nests first-level dirs and collapses deeper ones', wechatText.includes('dir-toggle') && wechatText.includes('childGroup.hidden = true') && wechatText.includes('dir-toggle-slot'))
+  check('save target has no root option', !wechatText.includes('value=""') && wechatText.includes('DEFAULT_DIR_NAME'))
   check(
     'normal page shows photo and file entries',
     pageText.includes('accept="image/*,video/*"') && pageText.includes('id="files"') && pageText.includes('id="photos"') && !pageText.includes('id="compat"'),
@@ -171,9 +178,9 @@ try {
   })
   const upload = await uploadResponse.json()
   check('upload accepted', uploadResponse.ok && upload.ok === true, JSON.stringify(upload))
-  const uploadedFile = path.join(tmp, 'hello world.txt')
-  check('file written to save dir', (await stat(uploadedFile)).size === 18)
-  check('upload response path', upload.path === 'hello world.txt', upload.path)
+  const uploadedFile = path.join(tmp, '默认', 'hello world.txt')
+  check('file written to default dir', (await stat(uploadedFile)).size === 18)
+  check('upload response path', upload.path === '默认/hello world.txt', upload.path)
 
   const unicodeDir = '旅行/2026'
   const nestedResponse = await fetch(
@@ -195,11 +202,33 @@ try {
   const dirsResponse = await fetch(`${lanBase}/dirs`)
   const dirs = await dirsResponse.json()
   check('dirs endpoint lists folders', dirsResponse.ok && dirs.dirs.some((item) => item.path === '旅行'))
+  check('dirs endpoint includes 默认 and excludes root', dirsResponse.ok && dirs.dirs.some((item) => item.path === '默认') && !dirs.dirs.some((item) => item.path === ''))
+  const stateWithReceipts = await (await fetch(`${adminBase}/shuttle/api/state`)).json()
+  check('received record tracks default dir', stateWithReceipts.received.some((item) => item.path === '默认/hello world.txt' && item.dir === '默认'))
+  const foldersResponse = await fetch(`${adminBase}/shuttle/api/folders`)
+  const folders = await foldersResponse.json()
+  check('folders endpoint reports 默认 activity', foldersResponse.ok && folders.folders.some((item) => item.name === '默认' && item.lastReceivedAt > 0))
 
-  const listResponse = await fetch(`${adminBase}/shuttle/api/list?path=`)
+  const listResponse = await fetch(`${adminBase}/shuttle/api/list?path=${encodeURIComponent('默认')}`)
   const listing = await listResponse.json()
   check('admin list shows files', listResponse.ok && listing.files.some((item) => item.name === 'hello world.txt'))
-  check('admin list shows dirs', listing.dirs.some((item) => item.path === '旅行'))
+  const rootListingResponse = await fetch(`${adminBase}/shuttle/api/list?path=`)
+  const rootListing = await rootListingResponse.json()
+  check('admin root contains folders but no default files', rootListingResponse.ok && rootListing.files.length === 0 && rootListing.dirs.some((item) => item.path === '默认'))
+  await writeFile(path.join(tmp, 'thumb.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]))
+  const rawResponse = await fetch(`${adminBase}/shuttle/api/raw?path=thumb.png`)
+  check('admin raw returns image content type', rawResponse.ok && rawResponse.headers.get('content-type') === 'image/png')
+  const rawTraversal = await fetch(`${adminBase}/shuttle/api/raw?path=${encodeURIComponent('../outside.png')}`)
+  check('admin raw refuses traversal', rawTraversal.status === 400)
+  const thumbResponse = await fetch(`${adminBase}/shuttle/api/thumb?path=thumb.png`)
+  check('admin thumb returns image content type', thumbResponse.ok && thumbResponse.headers.get('content-type') === 'image/png')
+  const thumbTraversal = await fetch(`${adminBase}/shuttle/api/thumb?path=${encodeURIComponent('../outside.png')}`)
+  check('admin thumb refuses traversal', thumbTraversal.status === 400)
+  await fetch(`${adminBase}/shuttle/api/delete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paths: ['thumb.png'] }),
+  })
 
   const mkdirResponse = await fetch(`${adminBase}/shuttle/api/mkdir`, {
     method: 'POST',
@@ -213,19 +242,19 @@ try {
   const renameResponse = await fetch(`${adminBase}/shuttle/api/rename`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ path: 'hello world.txt', name: 'renamed.txt' }),
+    body: JSON.stringify({ path: '默认/hello world.txt', name: 'renamed.txt' }),
   })
   const renamed = await renameResponse.json()
-  check('rename works', renameResponse.ok && renamed.path === 'renamed.txt', JSON.stringify(renamed))
+  check('rename works', renameResponse.ok && renamed.path === '默认/renamed.txt', JSON.stringify(renamed))
 
   const deleteResponse = await fetch(`${adminBase}/shuttle/api/delete`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ paths: ['renamed.txt'] }),
+    body: JSON.stringify({ paths: ['默认/renamed.txt'] }),
   })
   const deleted = await deleteResponse.json()
   check('delete works', deleteResponse.ok && deleted.deleted === 1)
-  check('deleted file gone', !(await readdir(tmp)).includes('renamed.txt'))
+  check('deleted file gone', !(await readdir(path.join(tmp, '默认'))).includes('renamed.txt'))
 
   const nonEmptyDelete = await fetch(`${adminBase}/shuttle/api/delete`, {
     method: 'POST',

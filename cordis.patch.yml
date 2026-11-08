@@ -1,7 +1,7 @@
 # 文件穿梭机 · Shuttle
 # Host 插件行：局域网接收服务 + 同源管理 API；浏览器界面在 client.js。
 # 可选 config：
-#   saveDir  接收目录；默认 ~/Downloads/Shuttle（界面里也可以修改）
+#   saveDir  接收目录；默认 <系统下载目录>/FileShuttle（界面里也可以修改）
 - insert:
     - id: shuttle
       name: 'shuttle-dsh'

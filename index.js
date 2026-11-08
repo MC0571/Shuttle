@@ -11,19 +11,24 @@
  *        GET  /shuttle/api/state         运行状态、二维码 URL、网络接口
  *        GET  /shuttle/api/qr.svg        二维码（离线生成）
  *        GET  /shuttle/api/list?path=    列目录
+ *        GET  /shuttle/api/raw?path=     读取保存目录内的文件（图片缩略图）
  *        POST /shuttle/api/mkdir         新建文件夹
  *        POST /shuttle/api/rename        重命名
  *        POST /shuttle/api/delete        删除（文件夹仅限空目录）
  *        POST /shuttle/api/open          在系统文件管理器中打开
+ *        POST /shuttle/api/pick-dir      调用系统文件夹选择器
  *        POST /shuttle/api/settings      修改保存目录 / 网络接口
  *        POST /shuttle/api/rotate-token  重置二维码链接
  *
  * 数据只在局域网内传输：手机 → 本机监听端口 → 保存目录，不经过任何中转。
  */
 import http from 'node:http'
+import { spawn } from 'node:child_process'
+import { createHash } from 'node:crypto'
+import { createReadStream } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { mkdir } from 'node:fs/promises'
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 
 import { renderPhonePage } from './lib/phone-page.js'
 import {
@@ -31,6 +36,7 @@ import {
   deleteEntry,
   listDirectories,
   listDirectory,
+  listTopFolders,
   openInFileManager,
   renameEntry,
   resolveInside,
@@ -38,9 +44,12 @@ import {
 } from './lib/files.js'
 import {
   createToken,
+  DEFAULT_FOLDER,
   defaultSaveDir,
   displayPath,
   expandHome,
+  loadReceipts,
+  persistReceipts,
   listIPv4Addresses,
   loadSettings,
   persistSettings,
@@ -56,6 +65,37 @@ import {
 } from './lib/util.js'
 
 export const name = 'shuttle'
+
+const THUMB_DIR = path.join(os.tmpdir(), 'shuttle-thumbs')
+
+function makeVideoThumb(target, key) {
+  return new Promise((resolve, reject) => {
+    const file = path.join(THUMB_DIR, key + '.jpg')
+    readFile(file).then(resolve, () => {
+      mkdir(THUMB_DIR, { recursive: true }).then(() => {
+        const child = spawn(
+          'ffmpeg',
+          ['-v', 'error', '-ss', '0.1', '-i', target, '-frames:v', '1', '-vf', 'scale=80:80:force_original_aspect_ratio=increase,crop=80:80', '-q:v', '4', '-f', 'mjpeg', 'pipe:1'],
+          { stdio: ['ignore', 'pipe', 'ignore'] },
+        )
+        const chunks = []
+        const timer = setTimeout(() => child.kill('SIGKILL'), 10000)
+        child.stdout.on('data', (chunk) => chunks.push(chunk))
+        child.on('error', (error) => {
+          clearTimeout(timer)
+          reject(error)
+        })
+        child.on('close', (code) => {
+          clearTimeout(timer)
+          if (code !== 0) return reject(new Error('thumbnail generation failed'))
+          const buffer = Buffer.concat(chunks)
+          if (buffer.length === 0) return reject(new Error('empty thumbnail'))
+          writeFile(file, buffer).then(() => resolve(buffer), () => resolve(buffer))
+        })
+      }, reject)
+    })
+  })
+}
 
 const ADMIN_PREFIX = '/shuttle'
 const ADMIN_API = '/shuttle/api'
@@ -84,11 +124,11 @@ export async function apply(ctx, config = {}) {
   const configured = typeof config?.saveDir === 'string' ? config.saveDir.trim() : ''
   let saveDir = path.resolve(expandHome(resolveInitialSaveDir(configured, saved.saveDir)))
   try {
-    await mkdir(saveDir, { recursive: true })
+    await mkdir(path.join(saveDir, DEFAULT_FOLDER), { recursive: true })
   } catch (error) {
     ctx.logger?.warn?.('shuttle: 无法使用保存目录 %s（%s），回退到默认目录', saveDir, error?.message ?? error)
     saveDir = path.resolve(defaultSaveDir())
-    await mkdir(saveDir, { recursive: true }).catch(() => {})
+    await mkdir(path.join(saveDir, DEFAULT_FOLDER), { recursive: true }).catch(() => {})
   }
 
   const state = {
@@ -99,6 +139,7 @@ export async function apply(ctx, config = {}) {
     startedAt: Date.now(),
     lastUpload: null,
     lastVisit: null,
+    received: loadReceipts(saveDir),
     pageViews: 0,
     lastPageAt: null,
     diagnostics: [],
@@ -120,6 +161,16 @@ export async function apply(ctx, config = {}) {
     if (state.diagnostics.length > 40) state.diagnostics.splice(0, state.diagnostics.length - 40)
   }
 
+  const recordReceipt = (entry) => {
+    state.received.unshift(entry)
+    if (state.received.length > 1000) state.received.length = 1000
+    try {
+      persistReceipts(state.saveDir, state.received)
+    } catch (error) {
+      ctx.logger?.warn?.('shuttle: 无法保存接收记录：%s', error?.message ?? error)
+    }
+  }
+
   const snapshot = () => {
     const addresses = listIPv4Addresses()
     const preferred = pickAddress(addresses, state.preferredIp)
@@ -135,6 +186,8 @@ export async function apply(ctx, config = {}) {
       startedAt: state.startedAt,
       lastUpload: state.lastUpload,
       lastVisit: state.lastVisit,
+      received: state.received.slice(0, 500),
+      defaultFolder: DEFAULT_FOLDER,
       pageViews: state.pageViews,
       lastPageAt: state.lastPageAt,
       diagnostics: state.diagnostics.slice(-20),
@@ -188,6 +241,8 @@ export async function apply(ctx, config = {}) {
           token: state.token,
           hostName: os.hostname(),
           saveDirName: path.basename(state.saveDir) || state.saveDir,
+          saveDir: state.saveDir,
+          defaultDirName: DEFAULT_FOLDER,
           wechat: state.lastVisit.wechat,
         }),
       )
@@ -204,7 +259,9 @@ export async function apply(ctx, config = {}) {
     }
     if (action === 'dirs') {
       if (req.method !== 'GET') return sendText(res, 405, 'Method not allowed')
-      const dirs = await listDirectories(state.saveDir, 2)
+      const dirs = (await listDirectories(state.saveDir, 2))
+        .filter((entry) => entry.path !== '')
+        .sort((left, right) => (left.path === DEFAULT_FOLDER ? -1 : right.path === DEFAULT_FOLDER ? 1 : 0))
       return sendJson(res, 200, { ok: true, dirs })
     }
     if (action === 'health') {
@@ -231,11 +288,13 @@ export async function apply(ctx, config = {}) {
     if (action === 'upload') {
       if (req.method !== 'POST') return sendText(res, 405, 'Method not allowed')
       try {
-        const targetDir = url.searchParams.get('dir') ?? ''
+        const requestedDir = (url.searchParams.get('dir') ?? '').replace(/^\/+|\/+$/g, '')
+        const targetDir = requestedDir || DEFAULT_FOLDER
         const rawName = url.searchParams.get('name') ?? 'file'
         recordDiagnostic('upload-start', { name: rawName, dir: targetDir, bytes: Number(req.headers['content-length'] ?? 0) || 0 }, req)
         const result = await saveUpload(state.saveDir, targetDir, rawName, req)
         state.lastUpload = { ...result, at: Date.now(), from: req.socket.remoteAddress ?? '' }
+        recordReceipt({ path: result.path, name: result.name, size: result.size, at: Date.now(), dir: targetDir })
         recordDiagnostic('upload-ok', { name: result.name, size: result.size }, req)
         return sendJson(res, 200, { ok: true, ...result })
       } catch (error) {
@@ -262,6 +321,19 @@ export async function apply(ctx, config = {}) {
         if (!view.url) return sendJson(res, 503, { ok: false, error: '没有可用的局域网地址' })
         return sendSvg(res, qrSvg(view.url))
       }
+      if (route === `${ADMIN_API}/folders`) {
+        if (method !== 'GET') return methodNotAllowed(res)
+        const folders = await listTopFolders(state.saveDir)
+        const withReceipts = folders.map((folder) => {
+          let lastReceivedAt = 0
+          for (const receipt of state.received) {
+            const top = String(receipt.dir || '').split('/')[0]
+            if (top === folder.name && receipt.at > lastReceivedAt) lastReceivedAt = receipt.at
+          }
+          return { ...folder, lastReceivedAt }
+        })
+        return sendJson(res, 200, { ok: true, folders: withReceipts })
+      }
       if (route === `${ADMIN_API}/list`) {
         if (method !== 'GET') return methodNotAllowed(res)
         const relative = url.searchParams.get('path') ?? ''
@@ -279,6 +351,21 @@ export async function apply(ctx, config = {}) {
         const body = await readJsonBody(req)
         if (typeof body.path !== 'string' || !body.path) return badRequest(res, '缺少 path')
         const renamed = await renameEntry(state.saveDir, body.path, body.name)
+        let changed = false
+        for (const receipt of state.received) {
+          if (receipt.path === body.path) {
+            receipt.path = renamed
+            receipt.name = path.basename(renamed)
+            changed = true
+          } else if (receipt.path.startsWith(body.path + '/')) {
+            receipt.path = renamed + receipt.path.slice(body.path.length)
+            receipt.name = path.basename(receipt.path)
+            changed = true
+          }
+        }
+        if (changed) {
+          try { persistReceipts(state.saveDir, state.received) } catch { /* 记录失败不影响重命名 */ }
+        }
         return sendJson(res, 200, { ok: true, path: renamed })
       }
       if (route === `${ADMIN_API}/delete`) {
@@ -292,6 +379,13 @@ export async function apply(ctx, config = {}) {
           await deleteEntry(state.saveDir, target)
           deleted += 1
         }
+        const before = state.received.length
+        state.received = state.received.filter((receipt) =>
+          !targets.some((target) => receipt.path === target || receipt.path.startsWith(target + '/')),
+        )
+        if (state.received.length !== before) {
+          try { persistReceipts(state.saveDir, state.received) } catch { /* 记录失败不影响删除 */ }
+        }
         return sendJson(res, 200, { ok: true, deleted })
       }
       if (route === `${ADMIN_API}/open`) {
@@ -301,14 +395,95 @@ export async function apply(ctx, config = {}) {
         const opened = openInFileManager(target)
         return sendJson(res, 200, { ok: true, opened })
       }
+      if (route === `${ADMIN_API}/raw`) {
+        if (method !== 'GET') return methodNotAllowed(res)
+        const relative = url.searchParams.get('path') || ''
+        const target = resolveInside(state.saveDir, relative)
+        const info = await stat(target)
+        if (!info.isFile()) return badRequest(res, '不是文件')
+        const mimeTypes = {
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.png': 'image/png',
+          '.gif': 'image/gif',
+          '.webp': 'image/webp',
+          '.bmp': 'image/bmp',
+          '.avif': 'image/avif',
+          '.heic': 'image/heic',
+        }
+        const mime = mimeTypes[path.extname(target).toLowerCase()] || 'application/octet-stream'
+        res.writeHead(200, {
+          'Content-Type': mime,
+          'Content-Length': info.size,
+          'Cache-Control': 'private, max-age=60',
+        })
+        const stream = createReadStream(target)
+        stream.on('error', () => res.destroy())
+        stream.pipe(res)
+        return
+      }
+
+      if (route === `${ADMIN_API}/thumb`) {
+        if (method !== 'GET') return methodNotAllowed(res)
+        const relative = url.searchParams.get('path') || ''
+        const target = resolveInside(state.saveDir, relative)
+        const info = await stat(target)
+        if (!info.isFile()) return badRequest(res, '不是文件')
+        const extension = path.extname(target).toLowerCase()
+        const imageMime = {
+          '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.gif': 'image/gif',
+          '.webp': 'image/webp', '.bmp': 'image/bmp', '.avif': 'image/avif', '.heic': 'image/heic',
+        }
+        if (imageMime[extension]) {
+          const stream = createReadStream(target)
+          res.writeHead(200, { 'Content-Type': imageMime[extension], 'Content-Length': info.size, 'Cache-Control': 'private, max-age=60' })
+          stream.on('error', () => res.destroy())
+          stream.pipe(res)
+          return
+        }
+        if (['.mp4', '.mov', '.m4v', '.avi', '.mkv', '.webm', '.ts'].includes(extension)) {
+          const key = createHash('sha1').update(target).update(String(info.mtimeMs)).update(String(info.size)).digest('hex')
+          try {
+            const buffer = await makeVideoThumb(target, key)
+            res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Content-Length': buffer.length, 'Cache-Control': 'private, max-age=3600' })
+            return res.end(buffer)
+          } catch {
+            return sendJson(res, 415, { ok: false, error: '无法生成视频缩略图' })
+          }
+        }
+        return sendJson(res, 415, { ok: false, error: '不支持的缩略图类型' })
+      }
+
+      if (route === `${ADMIN_API}/pick-dir`) {
+        if (method !== 'POST') return methodNotAllowed(res)
+        let available = false
+        let picked = null
+        try {
+          const picker = ctx.get('directoryPickerController')
+          if (picker && typeof picker.pick === 'function') {
+            available = true
+            picked = await picker.pick(new AbortController().signal)
+          }
+        } catch (error) {
+          return sendJson(res, 200, { ok: false, available: true, error: error?.message || String(error) })
+        }
+        return sendJson(res, 200, { ok: true, available, path: picked ?? null })
+      }
       if (route === `${ADMIN_API}/settings`) {
         if (method !== 'POST') return methodNotAllowed(res)
         const body = await readJsonBody(req)
         if (typeof body.saveDir === 'string') {
           const candidate = path.resolve(expandHome(body.saveDir))
           if (!candidate) return badRequest(res, '保存目录不能为空')
-          await mkdir(candidate, { recursive: true })
-          state.saveDir = candidate
+          if (candidate !== state.saveDir) {
+            await mkdir(path.join(candidate, DEFAULT_FOLDER), { recursive: true })
+            state.saveDir = candidate
+            state.received = []
+            state.lastUpload = null
+            persistReceipts(candidate, [])
+          } else {
+            await mkdir(path.join(candidate, DEFAULT_FOLDER), { recursive: true })
+          }
           persistSettings({ saveDir: candidate })
         }
         if (typeof body.preferredIp === 'string') {
