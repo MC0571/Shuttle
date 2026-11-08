@@ -2,6 +2,11 @@
 
 遵循 [Semantic Versioning](https://semver.org/)；每个标题对应一个 Git tag `v<version>`。
 
+## [0.3.8] - 2026-11-08
+
+### Documentation
+- README 增加桌面端和手机端产品截图，截图未裁切、未打码。
+
 ## [0.3.7] - 2026-11-08
 
 ### Changed
