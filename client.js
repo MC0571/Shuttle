@@ -106,7 +106,9 @@ window.__ModuleLoader__.load({
       'files.clearSearch': '清空搜索',
       'files.back': '返回接收列表',
       'files.colSource': '来源',
-      'files.browseTitle': '浏览文件夹',
+      'files.browseTitle': '浏览',
+      'files.recentTitle': '最近',
+      'files.clearFilter': '清除筛选',
       'files.filterFolder': '保存位置',
       'files.allFolders': '全部位置',
       'files.typeAll': '全部类型',
@@ -125,6 +127,8 @@ window.__ModuleLoader__.load({
       'files.time30d': '近 30 天',
       'files.hasNew': '有新文件',
       'files.folderAreaActions': '文件夹区域操作',
+      'files.groupCount': '{label} | {n} 项',
+      'files.childCount': '{n} 项',
       'files.newBadge': '新',
       'settings.title': '保存目录',
       'settings.saveDir': '保存到',
@@ -229,7 +233,9 @@ window.__ModuleLoader__.load({
       'files.clearSearch': 'Clear search',
       'files.back': 'Back to received list',
       'files.colSource': 'From',
-      'files.browseTitle': 'Browse folder',
+      'files.browseTitle': 'Browse',
+      'files.recentTitle': 'Recent',
+      'files.clearFilter': 'Clear filter',
       'files.filterFolder': 'Save location',
       'files.allFolders': 'All locations',
       'files.typeAll': 'All types',
@@ -248,6 +254,8 @@ window.__ModuleLoader__.load({
       'files.time30d': 'Last 30 days',
       'files.hasNew': 'New files',
       'files.folderAreaActions': 'Folder area actions',
+      'files.groupCount': '{label} | {n} items',
+      'files.childCount': '{n} items',
       'files.newBadge': 'NEW',
       'settings.title': 'Save folder',
       'settings.saveDir': 'Save to',
@@ -443,6 +451,76 @@ window.__ModuleLoader__.load({
   .fr-table-head { display: none; }
   .fr-row-meta, .fr-row-time, .fr-row-source { display: none; }
 }
+.fr-library-card { display: flex; flex-direction: column; flex: 1; min-height: 0; background: var(--dsw-alias-bg-layer-1); border: 1px solid var(--dsw-alias-border-l1); border-radius: 18px; overflow: hidden; }
+.fr-library-tabs { display: flex; align-items: center; gap: 4px; padding: 14px 18px 0; }
+.fr-library-tab { appearance: none; border: none; background: transparent; color: var(--dsw-alias-label-secondary); font-family: inherit; font-size: 14px; font-weight: 600; padding: 8px 12px; border-radius: 10px; cursor: pointer; }
+.fr-library-tab:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+.fr-library-tab.active { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+.fr-library-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 20px 14px; }
+.fr-library-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.fr-library-title h2 { margin: 0; font-size: 30px; line-height: 1.08; font-weight: 720; letter-spacing: -.025em; color: var(--dsw-alias-label-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fr-library-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.fr-library-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 0 20px 14px; }
+.fr-library-toolbar .fr-search { flex: 1 1 210px; }
+.fr-library-select { flex: 0 1 130px; appearance: none; border: 1px solid var(--dsw-alias-border-l1); background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-secondary); border-radius: 9px; padding: 7px 9px; font-size: 12px; font-family: inherit; }
+.fr-library-body { flex: 1; min-height: 0; overflow: auto; padding: 0 20px 16px; }
+.fr-date-section { margin-bottom: 18px; }
+.fr-date-head { display: flex; align-items: center; justify-content: space-between; width: 100%; border: none; background: transparent; color: var(--dsw-alias-label-secondary); padding: 7px 0 12px; font-family: inherit; cursor: pointer; }
+.fr-date-label { font-size: 13.5px; font-weight: 600; }
+.fr-date-chevron { font-size: 18px; line-height: 1; transition: transform .16s ease; }
+.fr-date-chevron.collapsed { transform: rotate(-90deg); }
+.fr-recent-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 14px; }
+.fr-recent-card { position: relative; min-width: 0; cursor: pointer; outline: none; }
+.fr-recent-card:focus-visible .fr-recent-preview { box-shadow: 0 0 0 3px rgba(37, 99, 235, .25); }
+.fr-recent-preview { width: 100%; aspect-ratio: 1 / 1; border-radius: 16px; overflow: hidden; border: 1px solid var(--dsw-alias-border-l1); background: var(--dsw-alias-bg-base); display: grid; place-items: center; }
+.fr-recent-media { position: relative; width: 100%; height: 100%; display: grid; place-items: center; color: var(--dsw-alias-label-secondary); }
+.fr-recent-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.fr-media-fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--dsw-alias-label-secondary); }
+.fr-media-icon { color: #60a5fa; }
+.fr-recent-more { position: absolute; top: 7px; right: 7px; width: 26px; height: 26px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 8px; background: var(--dsw-alias-bg-overlay); color: var(--dsw-alias-label-secondary); font-size: 16px; line-height: 1; cursor: pointer; opacity: 0; transition: opacity .14s ease; }
+.fr-recent-card:hover .fr-recent-more, .fr-recent-more:focus-visible { opacity: 1; }
+.fr-recent-name { margin-top: 9px; min-height: 36px; display: flex; align-items: flex-start; gap: 4px; color: var(--dsw-alias-label-primary); font-size: 13px; font-weight: 600; line-height: 1.35; overflow: hidden; }
+.fr-recent-name > span { min-width: 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.fr-recent-size { margin-top: 3px; font-size: 11.5px; color: var(--dsw-alias-label-secondary); }
+.fr-recent-source { margin-top: 2px; font-size: 10.5px; color: var(--dsw-alias-label-tertiary, var(--dsw-alias-label-secondary)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fr-recent-new .fr-recent-preview { animation: frPreviewNew 3.6s ease-out; }
+@keyframes frPreviewNew { 0% { box-shadow: 0 0 0 3px rgba(37, 99, 235, .30); } 55% { box-shadow: 0 0 0 2px rgba(37, 99, 235, .12); } 100% { box-shadow: 0 0 0 0 transparent; } }
+.fr-type-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+.fr-type-shortcut { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 12px 13px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 15px; background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-primary); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; text-align: left; }
+.fr-type-shortcut:hover { background: var(--dsw-alias-bg-layer-2); }
+.fr-type-shortcut.active { border-color: var(--dsw-alias-brand-primary); background: rgba(37, 99, 235, .06); }
+.fr-type-shortcut-icon { flex: none; width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; }
+.fr-type-yellow { background: #fff2ce; color: #d99a00; }
+.fr-type-purple { background: #ede9fe; color: #7c3aed; }
+.fr-type-blue { background: #dbeafe; color: #2563eb; }
+.fr-type-red { background: #ffe4e6; color: #e11d48; }
+.fr-type-shortcut-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fr-browse-list { display: flex; flex-direction: column; }
+.fr-browse-row { display: flex; align-items: center; gap: 14px; min-height: 76px; padding: 10px 2px; border-bottom: 1px solid var(--dsw-alias-border-l1); cursor: pointer; outline: none; }
+.fr-browse-row:hover { background: var(--dsw-alias-bg-layer-2); }
+.fr-browse-row:focus-visible { box-shadow: inset 0 0 0 2px rgba(37, 99, 235, .22); }
+.fr-browse-icon { flex: none; width: 52px; height: 52px; border-radius: 13px; display: grid; place-items: center; overflow: hidden; color: var(--dsw-alias-label-secondary); }
+.fr-browse-folder-icon { background: rgba(59, 130, 246, .10); }
+.fr-browse-media { position: relative; width: 52px; height: 52px; display: grid; place-items: center; }
+.fr-browse-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.fr-browse-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.fr-browse-name { color: var(--dsw-alias-label-primary); font-size: 14px; font-weight: 600; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+.fr-browse-meta { color: var(--dsw-alias-label-secondary); font-size: 11.5px; line-height: 1.3; }
+.fr-browse-more { flex: none; width: 26px; height: 26px; border: none; border-radius: 7px; background: transparent; color: var(--dsw-alias-label-secondary); font-size: 16px; line-height: 1; cursor: pointer; }
+.fr-browse-more:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+.fr-browse-chevron { flex: none; color: var(--dsw-alias-label-secondary); font-size: 24px; line-height: 1; font-weight: 300; }
+.fr-browse-new { animation: frBrowseNew 3.6s ease-out; }
+@keyframes frBrowseNew { 0% { background: rgba(37, 99, 235, .16); } 55% { background: rgba(37, 99, 235, .07); } 100% { background: transparent; } }
+.fr-library-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 230px; padding: 30px 16px; color: var(--dsw-alias-label-secondary); font-size: 12.5px; text-align: center; }
+.fr-library-empty strong { color: var(--dsw-alias-label-primary); font-size: 14px; font-weight: 650; }
+.fr-empty-glyph { width: 58px; height: 58px; border-radius: 16px; display: grid; place-items: center; background: var(--dsw-alias-bg-layer-2); color: #60a5fa; margin-bottom: 3px; }
+.fr-library-foot { padding: 14px 0 2px; color: var(--dsw-alias-label-secondary); font-size: 11.5px; text-align: right; }
+@media (max-width: 900px) {
+  .fr-library-title h2 { font-size: 24px; }
+  .fr-type-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fr-recent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 `
 
     function postJson(body) {
@@ -769,6 +847,7 @@ window.__ModuleLoader__.load({
       const [folderFilter, setFolderFilter] = React.useState('all')
       const [typeFilter, setTypeFilter] = React.useState('all')
       const [timeFilter, setTimeFilter] = React.useState('all')
+      const [collapsedGroups, setCollapsedGroups] = React.useState({})
       const [rowBusy, setRowBusy] = React.useState('')
       const [freshPath, setFreshPath] = React.useState('')
       const [selectedPaths, setSelectedPaths] = React.useState([])
@@ -1238,7 +1317,12 @@ window.__ModuleLoader__.load({
         ['code', 'files.typeCode'],
         ['file', 'files.typeOther'],
       ]
-      const matchesTypeFilter = (item) => !isHome || typeFilter === 'all' || fileCategory(item.name, item.kind) === typeFilter
+      const matchesTypeFilter = (item) => {
+        if (typeFilter === 'all') return true
+        const category = fileCategory(item.name, item.kind)
+        if (typeFilter === 'document') return ['document', 'sheet', 'presentation'].includes(category)
+        return category === typeFilter
+      }
       const matchesTimeFilter = (item) => {
         if (!isHome || timeFilter === 'all') return true
         const value = Number(item.mtime)
@@ -1283,6 +1367,21 @@ window.__ModuleLoader__.load({
       )
       const visibleFiles = files.filter((item) => matchesSearch(item) && matchesFolderFilter(item) && matchesTypeFilter(item) && matchesTimeFilter(item)).slice().sort(compareEntries)
       const visibleTotal = visibleDirs.length + visibleFiles.length
+      const recentGroups = []
+      const recentGroupMap = new Map()
+      for (const item of visibleFiles) {
+        const label = formatGroupLabel(item.mtime, translate)
+        let group = recentGroupMap.get(label)
+        if (!group) {
+          group = { key: label, label, items: [] }
+          recentGroupMap.set(label, group)
+          recentGroups.push(group)
+        }
+        group.items.push(item)
+      }
+      const toggleRecentGroup = (key) => {
+        setCollapsedGroups((previous) => ({ ...previous, [key]: !previous[key] }))
+      }
 
       React.useEffect(() => {
         const available = new Set(dirs.concat(files).map((item) => item.path))
@@ -1757,6 +1856,254 @@ window.__ModuleLoader__.load({
         ),
       )
 
+
+      const renderMediaPreview = (item, className) => {
+        const visual = imageFile(item.name) || videoFile(item.name)
+        return h('span', { className: className + (visual ? '' : ' fr-media-icon') },
+          visual
+            ? [
+                h('span', { key: 'fallback', className: 'fr-media-fallback' }, h(FileTypeIcon, { name: item.name, kind: item.kind, size: 30 })),
+                h('img', {
+                  key: 'image',
+                  src: API + '/thumb?path=' + encodeURIComponent(item.path),
+                  loading: 'lazy',
+                  alt: '',
+                  onError: (event) => { event.currentTarget.style.display = 'none' },
+                }),
+              ]
+            : h(FileTypeIcon, { name: item.name, kind: item.kind, size: 34 }),
+        )
+      }
+
+      const renderItemMore = (item, className) =>
+        h('button', {
+          type: 'button',
+          className: className,
+          onClick: (event) => {
+            event.stopPropagation()
+            openRowMenu(event, item)
+          },
+          disabled: busy || rowBusy === item.path,
+          title: translate('files.more'),
+          'aria-label': translate('files.more'),
+        }, '⋯')
+
+      const renderRecentCard = (item) => h('article', {
+          key: item.path,
+          className: 'fr-recent-card' + (freshPath === item.path ? ' fr-recent-new' : ''),
+          onClick: () => openItem(item),
+          title: item.name,
+        },
+        h('div', { className: 'fr-recent-preview' }, renderMediaPreview(item, 'fr-recent-media')),
+        renderItemMore(item, 'fr-recent-more'),
+        h('div', { className: 'fr-recent-name' }, renderName(item)),
+        h('div', { className: 'fr-recent-size' }, formatSize(item.size)),
+        item.sourceDir ? h('div', { className: 'fr-recent-source' }, item.sourceDir + '/') : null,
+      )
+
+      const renderBrowseFolder = (item) => h('div', {
+          key: item.path,
+          className: 'fr-browse-row fr-browse-folder',
+          role: 'button',
+          tabIndex: 0,
+          onClick: () => navigateTo(item.path),
+          onKeyDown: (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              navigateTo(item.path)
+            }
+          },
+          title: item.name,
+        },
+        h('span', { className: 'fr-browse-icon fr-browse-folder-icon' }, h(FileTypeIcon, { name: item.name, kind: 'directory', size: 30 })),
+        h('span', { className: 'fr-browse-main' },
+          h('span', { className: 'fr-browse-name' }, item.name),
+          h('span', { className: 'fr-browse-meta' },
+            formatFileTime(item.mtime, translate),
+            typeof item.childCount === 'number' ? ' · ' + translate('files.childCount').replace('{n}', String(item.childCount)) : '',
+          ),
+        ),
+        renderItemMore(item, 'fr-browse-more'),
+        h('span', { className: 'fr-browse-chevron', 'aria-hidden': true }, '›'),
+      )
+
+      const renderBrowseFile = (item) => h('div', {
+          key: item.path,
+          className: 'fr-browse-row fr-browse-file' + (freshPath === item.path ? ' fr-browse-new' : ''),
+          role: 'button',
+          tabIndex: 0,
+          onClick: () => openItem(item),
+          onKeyDown: (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              openItem(item)
+            }
+          },
+          title: item.name,
+        },
+        h('span', { className: 'fr-browse-icon' }, renderMediaPreview(item, 'fr-browse-media')),
+        h('span', { className: 'fr-browse-main' },
+          h('span', { className: 'fr-browse-name' }, renderName(item)),
+          h('span', { className: 'fr-browse-meta' }, formatFileTime(item.mtime, translate), ' · ', formatSize(item.size)),
+        ),
+        renderItemMore(item, 'fr-browse-more'),
+      )
+
+      const browseTypeCard = (value, sample, label, colorClass) => h('button', {
+          type: 'button',
+          className: 'fr-type-shortcut' + (typeFilter === value ? ' active' : ''),
+          onClick: () => setTypeFilter(typeFilter === value ? 'all' : value),
+        },
+        h('span', { className: 'fr-type-shortcut-icon ' + colorClass }, h(FileTypeIcon, { name: sample, kind: 'file', size: 25 })),
+        h('span', { className: 'fr-type-shortcut-label' }, label),
+      )
+
+      const recentEmpty = h('div', { className: 'fr-library-empty' },
+        h('span', { className: 'fr-empty-glyph', 'aria-hidden': true }, h(FileTypeIcon, { name: 'file', kind: 'file', size: 38 })),
+        h('strong', null, searchNeedle ? translate('files.noMatch') : translate('files.emptyTitle')),
+        h('span', null, searchNeedle ? translate('files.noMatchHint') : translate('files.emptyHint')),
+        searchNeedle ? h('button', { type: 'button', className: 'fr-btn', onClick: () => setSearch('') }, translate('files.clearSearch')) : null,
+      )
+
+      const browseEmpty = h('div', { className: 'fr-library-empty' },
+        h('span', { className: 'fr-empty-glyph', 'aria-hidden': true }, h(FileTypeIcon, { name: 'file', kind: 'file', size: 38 })),
+        h('strong', null, searchNeedle || typeFilter !== 'all' ? translate('files.noMatch') : translate('files.emptyTitle')),
+        h('span', null, searchNeedle || typeFilter !== 'all' ? translate('files.noMatchHint') : translate('files.emptyHint')),
+        searchNeedle ? h('button', { type: 'button', className: 'fr-btn', onClick: () => setSearch('') }, translate('files.clearSearch')) : null,
+      )
+
+      const recentToolbar = h('div', { className: 'fr-library-toolbar' },
+        h('label', { className: 'fr-search' },
+          h('svg', { width: 15, height: 15, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', 'aria-hidden': true },
+            h('circle', { cx: 11, cy: 11, r: 6.5 }),
+            h('path', { d: 'M16 16l4.5 4.5' }),
+          ),
+          h('input', {
+            value: search,
+            onChange: (event) => setSearch(event.target.value),
+            placeholder: translate('files.search'),
+            'aria-label': translate('files.search'),
+            spellCheck: false,
+          }),
+        ),
+        h('select', {
+          className: 'fr-library-select',
+          value: typeFilter,
+          onChange: (event) => setTypeFilter(event.target.value),
+          'aria-label': translate('files.typeAll'),
+          title: translate('files.typeAll'),
+        }, typeFilterOptions.map(([value, key]) => h('option', { key: value, value }, translate(key)))),
+        h('select', {
+          className: 'fr-library-select',
+          value: timeFilter,
+          onChange: (event) => setTimeFilter(event.target.value),
+          'aria-label': translate('files.timeAll'),
+          title: translate('files.timeAll'),
+        },
+          h('option', { value: 'all' }, translate('files.timeAll')),
+          h('option', { value: 'today' }, translate('files.timeToday')),
+          h('option', { value: '7d' }, translate('files.time7d')),
+          h('option', { value: '30d' }, translate('files.time30d')),
+        ),
+        folderFilterOptions.length > 1
+          ? h('select', {
+              className: 'fr-library-select',
+              value: folderFilter,
+              onChange: (event) => setFolderFilter(event.target.value),
+              'aria-label': translate('files.filterFolder'),
+              title: translate('files.filterFolder'),
+            },
+              h('option', { value: 'all' }, translate('files.allFolders')),
+              folderFilterOptions.map((folder) => h('option', { key: folder, value: folder }, folder + '/')),
+            )
+          : null,
+      )
+
+      const browseToolbar = h('div', { className: 'fr-library-toolbar' },
+        h('label', { className: 'fr-search' },
+          h('svg', { width: 15, height: 15, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', 'aria-hidden': true },
+            h('circle', { cx: 11, cy: 11, r: 6.5 }),
+            h('path', { d: 'M16 16l4.5 4.5' }),
+          ),
+          h('input', {
+            value: search,
+            onChange: (event) => setSearch(event.target.value),
+            placeholder: translate('files.search'),
+            'aria-label': translate('files.search'),
+            spellCheck: false,
+          }),
+        ),
+        typeFilter !== 'all'
+          ? h('button', { type: 'button', className: 'fr-link', onClick: () => setTypeFilter('all') }, translate('files.clearFilter'))
+          : null,
+      )
+
+      const recentView = h('div', { className: 'fr-library-body' },
+        recentGroups.length === 0
+          ? recentEmpty
+          : recentGroups.map((group) => h('section', { key: group.key, className: 'fr-date-section' },
+              h('button', {
+                  type: 'button',
+                  className: 'fr-date-head',
+                  onClick: () => toggleRecentGroup(group.key),
+                },
+                h('span', { className: 'fr-date-label' }, translate('files.groupCount').replace('{label}', group.label).replace('{n}', String(group.items.length))),
+                h('span', { className: 'fr-date-chevron' + (collapsedGroups[group.key] ? ' collapsed' : '') }, '⌄'),
+              ),
+              !collapsedGroups[group.key]
+                ? h('div', { className: 'fr-recent-grid' }, group.items.map(renderRecentCard))
+                : null,
+            )),
+        h('div', { className: 'fr-library-foot' }, translate('files.countFiles').replace('{files}', String(visibleFiles.length))),
+      )
+
+      const browseView = h('div', { className: 'fr-library-body' },
+        h('div', { className: 'fr-type-grid' },
+          browseTypeCard('document', 'a.pdf', translate('files.typeDocument'), 'fr-type-yellow'),
+          browseTypeCard('image', 'a.jpg', translate('files.typeImage'), 'fr-type-purple'),
+          browseTypeCard('video', 'a.mp4', translate('files.typeVideo'), 'fr-type-blue'),
+          browseTypeCard('audio', 'a.mp3', translate('files.typeAudio'), 'fr-type-red'),
+        ),
+        (visibleDirs.length + visibleFiles.length) === 0
+          ? browseEmpty
+          : h('div', { className: 'fr-browse-list' },
+              visibleDirs.map(renderBrowseFolder),
+              visibleFiles.map(renderBrowseFile),
+            ),
+        h('div', { className: 'fr-library-foot' },
+          translate('files.count').replace('{dirs}', String(visibleDirs.length)).replace('{files}', String(visibleFiles.length)),
+        ),
+      )
+
+      const recentTab = h('button', {
+        type: 'button',
+        className: 'fr-library-tab' + (isHome ? ' active' : ''),
+        onClick: () => { if (!isHome) backToHome() },
+      }, translate('files.recentTitle'))
+
+      const browseTab = h('button', {
+        type: 'button',
+        className: 'fr-library-tab' + (!isHome ? ' active' : ''),
+        onClick: () => { if (isHome) navigateTo('') },
+      }, translate('files.browseTitle'))
+
+      const libraryCard = h('section', { className: 'fr-library-card' },
+        h('div', { className: 'fr-library-tabs' }, recentTab, browseTab),
+        h('div', { className: 'fr-library-head' },
+          h('div', { className: 'fr-library-title' },
+            !isHome ? h('button', { type: 'button', className: 'fr-back', onClick: backToHome, title: translate('files.back'), 'aria-label': translate('files.back') }, '←') : null,
+            h('h2', null, isHome ? translate('files.recentTitle') : (currentPath ? currentPath.split('/').pop() : translate('files.browseTitle'))),
+          ),
+          h('div', { className: 'fr-library-actions' },
+            !isHome ? h('button', { type: 'button', className: 'fr-btn', onClick: createFolder, disabled: busy }, translate('files.newFolder')) : null,
+            !isHome ? h('button', { type: 'button', className: 'fr-btn', onClick: openCurrentDir, disabled: busy }, translate('files.openFolder')) : null,
+            h('button', { type: 'button', className: 'fr-btn', onClick: () => refresh(pathRef.current), disabled: busy }, translate('common.refresh')),
+          ),
+        ),
+        isHome ? recentToolbar : browseToolbar,
+        isHome ? recentView : browseView,
+      )
+
       return h(
         'div',
         { className: 'fr-root' },
@@ -1804,7 +2151,7 @@ window.__ModuleLoader__.load({
                 ),
                 networkCard,
               ),
-              h('div', { className: 'fr-main' }, folderCards, filesCard),
+              h('div', { className: 'fr-main' }, libraryCard),
             )
           : null,
         folderAreaMenu
