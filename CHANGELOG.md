@@ -2,6 +2,11 @@
 
 遵循 [Semantic Versioning](https://semver.org/)；每个标题对应一个 Git tag `v<version>`。
 
+## [0.3.2] - 2026-11-08
+
+### Changed
+- 浏览页头部的「新建文件夹 / 打开目录 / 刷新」改回文字按钮；图标按钮识别成本太高。
+
 ## [0.3.1] - 2026-11-08
 
 ### Changed
