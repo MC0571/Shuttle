@@ -142,6 +142,7 @@ try {
     resumeHtml.includes('class="head-meta"') && resumeHtml.includes('class="host-name"'),
   )
   check('header drops save-dir subtitle', !resumeHtml.includes('发送到') && !resumeHtml.includes('FilesRemote'))
+  check('header has no brand logo', !resumeHtml.includes('class="logo"'))
 
   await fetch(`${lanBase}/event`, {
     method: 'POST',

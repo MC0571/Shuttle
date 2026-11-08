@@ -127,6 +127,8 @@ window.__ModuleLoader__.load({
       'files.time30d': '近 30 天',
       'files.hasNew': '有新文件',
       'files.folderAreaActions': '文件夹区域操作',
+      'files.copyPath': '复制路径',
+      'files.pathCopied': '路径已复制',
       'files.groupCount': '{label} | {n} 项',
       'files.childCount': '{n} 项',
       'files.newBadge': '新',
@@ -254,6 +256,8 @@ window.__ModuleLoader__.load({
       'files.time30d': 'Last 30 days',
       'files.hasNew': 'New files',
       'files.folderAreaActions': 'Folder area actions',
+      'files.copyPath': 'Copy path',
+      'files.pathCopied': 'Path copied',
       'files.groupCount': '{label} | {n} items',
       'files.childCount': '{n} items',
       'files.newBadge': 'NEW',
@@ -878,6 +882,9 @@ window.__ModuleLoader__.load({
 
       const pathRef = React.useRef('')
       const modeRef = React.useRef('home')
+      const lastBrowsePathRef = React.useRef((() => {
+        try { return localStorage.getItem('shuttle.lastBrowsePath') || '' } catch { return '' }
+      })())
       const listingSeq = React.useRef(0)
       const dialogAction = React.useRef(null)
       const noticeTimer = React.useRef(null)
@@ -961,6 +968,10 @@ window.__ModuleLoader__.load({
         const resolved = typeof data.path === 'string' ? data.path : ''
         setCurrentPath(resolved)
         pathRef.current = resolved
+        if (modeRef.current === 'browse') {
+          lastBrowsePathRef.current = resolved
+          try { localStorage.setItem('shuttle.lastBrowsePath', resolved) } catch { /* 忽略 */ }
+        }
         return data
       }
 
@@ -1121,6 +1132,27 @@ window.__ModuleLoader__.load({
         })
       }
 
+      const enterBrowseDefault = () => {
+        const target = lastBrowsePathRef.current || ''
+        modeRef.current = 'browse'
+        setMode('browse')
+        setListing(null)
+        setSearch('')
+        setSelectedPaths([])
+        pathRef.current = target
+        setCurrentPath(target)
+        markFolderSeen(target)
+        act(async () => {
+          try {
+            await loadListing(target)
+          } catch {
+            lastBrowsePathRef.current = ''
+            try { localStorage.removeItem('shuttle.lastBrowsePath') } catch { /* 忽略 */ }
+            await loadListing('')
+          }
+        })
+      }
+
       const backToHome = () => {
         modeRef.current = 'home'
         setMode('home')
@@ -1244,6 +1276,19 @@ window.__ModuleLoader__.load({
         })
       }
 
+      const copyItemPath = (item) => {
+        const base = state && state.saveDir ? String(state.saveDir) : ''
+        const separator = base.includes('\\') ? '\\' : '/'
+        const relative = String(item && item.path ? item.path : '').replace(/[\\/]+/g, separator)
+        const absolute = base ? base.replace(/[\\/]+$/, '') + (relative ? separator + relative : '') : relative
+        const done = () => flash(translate('files.pathCopied'))
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+          navigator.clipboard.writeText(absolute).then(done, () => fallbackCopy(absolute, done))
+          return
+        }
+        fallbackCopy(absolute, done)
+      }
+
       const openCurrentDir = () => {
         act(async () => {
           await request('/open', postJson({ path: pathRef.current }))
@@ -1279,7 +1324,11 @@ window.__ModuleLoader__.load({
           setCurrentPath('')
           setFolderFilter('all')
           setFolderSeen({})
-          try { localStorage.removeItem('shuttle.folderSeen') } catch { /* 忽略 */ }
+          lastBrowsePathRef.current = ''
+          try {
+            localStorage.removeItem('shuttle.folderSeen')
+            localStorage.removeItem('shuttle.lastBrowsePath')
+          } catch { /* 忽略 */ }
           await loadFolders()
           flash(translate('settings.updated'))
         })
@@ -1422,7 +1471,7 @@ window.__ModuleLoader__.load({
       const openRowMenu = (event, item) => {
         const rect = event.currentTarget.getBoundingClientRect()
         const width = 168
-        const height = 116
+        const height = 156
         const left = Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8))
         const top = rect.bottom + height + 8 > window.innerHeight ? Math.max(8, rect.top - height - 4) : rect.bottom + 4
         setRowMenu({ item, left, top })
@@ -2094,7 +2143,7 @@ window.__ModuleLoader__.load({
       const browseTab = h('button', {
         type: 'button',
         className: 'fr-library-tab' + (!isHome ? ' active' : ''),
-        onClick: () => { if (isHome) navigateTo(''); else if (currentPath) navigateTo('') },
+        onClick: () => { if (isHome) enterBrowseDefault() },
       }, h('span', { className: 'fr-library-tab-icon' }, browseIcon), h('span', null, translate('files.browseTitle')))
 
       const libraryCard = h('section', { className: 'fr-library-card' },
@@ -2219,6 +2268,21 @@ window.__ModuleLoader__.load({
                   style: { left: rowMenu.left, top: rowMenu.top },
                   onMouseDown: (event) => event.stopPropagation(),
                 },
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'fr-menu-item',
+                    role: 'menuitem',
+                    disabled: busy,
+                    onClick: () => {
+                      const item = rowMenu.item
+                      setRowMenu(null)
+                      copyItemPath(item)
+                    },
+                  },
+                  translate('files.copyPath'),
+                ),
                 h(
                   'button',
                   {
