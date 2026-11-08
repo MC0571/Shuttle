@@ -4,13 +4,9 @@ DeepSeek Harness 插件：电脑显示一个二维码，手机用系统相机扫
 
 ## 产品截图
 
-### 桌面端
-
-![文件穿梭机桌面端界面](docs/desktop-screenshot.webp)
-
-### 手机端
-
-<img src="docs/mobile-upload.jpg" alt="文件穿梭机手机上传页" width="360">
+| 桌面端 | 手机端 |
+| :---: | :---: |
+| <img src="docs/desktop-screenshot.webp" alt="文件穿梭机桌面端界面" width="720"> | <img src="docs/mobile-upload.jpg" alt="文件穿梭机手机上传页" width="280"> |
 
 ## 功能
 

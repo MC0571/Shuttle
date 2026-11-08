@@ -2,6 +2,11 @@
 
 遵循 [Semantic Versioning](https://semver.org/)；每个标题对应一个 Git tag `v<version>`。
 
+## [0.3.9] - 2026-11-08
+
+### Documentation
+- README 产品截图改为左右同排布局，减少垂直占用。
+
 ## [0.3.8] - 2026-11-08
 
 ### Documentation
