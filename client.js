@@ -107,8 +107,24 @@ window.__ModuleLoader__.load({
       'files.back': '返回接收列表',
       'files.colSource': '来源',
       'files.browseTitle': '浏览文件夹',
-      'files.filterFolder': '筛选文件夹',
-      'files.allFolders': '全部文件夹',
+      'files.filterFolder': '保存位置',
+      'files.allFolders': '全部位置',
+      'files.typeAll': '全部类型',
+      'files.typeImage': '图片',
+      'files.typeVideo': '视频',
+      'files.typeAudio': '音频',
+      'files.typeDocument': '文档',
+      'files.typeSheet': '表格',
+      'files.typePresentation': '演示文稿',
+      'files.typeArchive': '压缩包',
+      'files.typeCode': '代码',
+      'files.typeOther': '其他',
+      'files.timeAll': '全部时间',
+      'files.timeToday': '今天',
+      'files.time7d': '近 7 天',
+      'files.time30d': '近 30 天',
+      'files.hasNew': '有新文件',
+      'files.folderAreaActions': '文件夹区域操作',
       'files.newBadge': '新',
       'settings.title': '保存目录',
       'settings.saveDir': '保存到',
@@ -214,8 +230,24 @@ window.__ModuleLoader__.load({
       'files.back': 'Back to received list',
       'files.colSource': 'From',
       'files.browseTitle': 'Browse folder',
-      'files.filterFolder': 'Filter folder',
-      'files.allFolders': 'All folders',
+      'files.filterFolder': 'Save location',
+      'files.allFolders': 'All locations',
+      'files.typeAll': 'All types',
+      'files.typeImage': 'Images',
+      'files.typeVideo': 'Videos',
+      'files.typeAudio': 'Audio',
+      'files.typeDocument': 'Documents',
+      'files.typeSheet': 'Spreadsheets',
+      'files.typePresentation': 'Presentations',
+      'files.typeArchive': 'Archives',
+      'files.typeCode': 'Code',
+      'files.typeOther': 'Other',
+      'files.timeAll': 'All time',
+      'files.timeToday': 'Today',
+      'files.time7d': 'Last 7 days',
+      'files.time30d': 'Last 30 days',
+      'files.hasNew': 'New files',
+      'files.folderAreaActions': 'Folder area actions',
       'files.newBadge': 'NEW',
       'settings.title': 'Save folder',
       'settings.saveDir': 'Save to',
@@ -253,19 +285,25 @@ window.__ModuleLoader__.load({
 .fr-side { display: flex; flex-direction: column; gap: 16px; min-height: 0; overflow: auto; padding-right: 2px; }
 .fr-main { display: flex; flex-direction: column; min-height: 0; }
 .fr-card-files { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-.fr-folders-wrap { flex: none; margin-bottom: 4px; }
-.fr-folders-label { margin: 0 0 8px 2px; font-size: 11.5px; font-weight: 600; color: var(--dsw-alias-label-secondary); letter-spacing: .02em; }
-.fr-folders { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-.fr-folder-card { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px 12px; text-align: left; border: 1px solid var(--dsw-alias-border-l1); border-radius: 12px; background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); font-family: inherit; cursor: pointer; }
+.fr-folders-wrap { flex: none; margin-bottom: 8px; }
+.fr-folders-head { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+.fr-folder-area-more { width: 28px; height: 24px; border: none; border-radius: 7px; background: transparent; color: var(--dsw-alias-label-secondary); font-size: 17px; line-height: 1; cursor: pointer; font-family: inherit; }
+.fr-folder-area-more:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+.fr-folders { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 7px; scroll-snap-type: x proximity; scrollbar-width: thin; }
+.fr-folder-card { position: relative; flex: 0 0 180px; width: 180px; display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px 12px; text-align: left; border: 1px solid var(--dsw-alias-border-l1); border-radius: 12px; background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); font-family: inherit; cursor: pointer; scroll-snap-align: start; }
 .fr-folder-more { flex: none; width: 22px; height: 22px; border: none; border-radius: 6px; background: transparent; color: var(--dsw-alias-label-secondary); font-size: 15px; line-height: 1; cursor: pointer; }
 .fr-folder-more:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
 .fr-folder-card:hover { border-color: var(--dsw-alias-border-l2); background: var(--dsw-alias-bg-layer-2); }
 .fr-folder-icon { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(59, 130, 246, .12); }
 .fr-folder-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
 .fr-folder-name { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fr-folder-time { font-size: 10.5px; color: var(--dsw-alias-label-secondary); white-space: nowrap; }
-.fr-folder-new { flex: none; padding: 1px 4px; border-radius: 4px; background: var(--dsw-alias-brand-primary); color: #fff; font-size: 9px; font-weight: 700; line-height: 1.4; }
-.fr-folder-chevron { flex: none; color: var(--dsw-alias-label-secondary); font-size: 17px; line-height: 1; }
+.fr-folder-time { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--dsw-alias-label-secondary); white-space: nowrap; }
+.fr-folder-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--dsw-alias-border-l2); }
+.fr-folder-dot.is-new { background: var(--dsw-alias-brand-primary); box-shadow: 0 0 0 2px rgba(59, 130, 246, .14); }
+.fr-folder-add { border-style: dashed; background: transparent; color: var(--dsw-alias-label-secondary); }
+.fr-folder-add:hover { border-color: var(--dsw-alias-brand-primary); color: var(--dsw-alias-brand-primary); }
+.fr-folder-add-icon { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(59, 130, 246, .10); font-size: 22px; line-height: 1; }
+.fr-folder-add-label { font-size: 12px; font-weight: 600; }
 .fr-card-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .fr-card-title h2 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fr-back { appearance: none; border: 1px solid var(--dsw-alias-border-l1); background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font-size: 16px; line-height: 1; cursor: pointer; font-family: inherit; }
@@ -313,6 +351,8 @@ window.__ModuleLoader__.load({
 .fr-list { border-top: 1px solid var(--dsw-alias-border-l1); flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; position: relative; }
 .fr-table-head { display: grid; grid-template-columns: 26px 34px minmax(0, 1fr) 84px 72px 102px 30px; align-items: center; gap: 10px; padding: 7px 6px; border-top: 1px solid var(--dsw-alias-border-l1); border-bottom: 1px solid var(--dsw-alias-border-l1); font-size: 11px; color: var(--dsw-alias-label-secondary); flex: none; }
 .fr-table-head span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fr-sort-head { appearance: none; border: none; background: none; padding: 0; margin: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fr-sort-head:hover { color: var(--dsw-alias-label-primary); }
 .fr-row { display: grid; grid-template-columns: 26px 34px minmax(0, 1fr) 84px 72px 102px 30px; align-items: center; gap: 10px; padding: 8px 6px; height: 56px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
 .fr-row-file { cursor: pointer; }
 .fr-row-browse { grid-template-columns: 26px 34px minmax(0, 1fr) 72px 102px 30px; }
@@ -352,12 +392,12 @@ window.__ModuleLoader__.load({
 .fr-more { appearance: none; border: none; background: none; color: var(--dsw-alias-label-secondary); font-size: 17px; line-height: 1; padding: 2px 4px; border-radius: 6px; cursor: pointer; font-family: inherit; }
 .fr-more:hover:not(:disabled) { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
 .fr-more:disabled { opacity: .5; cursor: default; }
-.fr-list-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.fr-list-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .fr-search { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 6px 9px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 8px; background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-secondary); }
 .fr-search svg { flex: none; }
 .fr-search input { flex: 1; min-width: 0; appearance: none; border: none; outline: none; background: none; color: var(--dsw-alias-label-primary); font-family: inherit; font-size: 12.5px; padding: 0; }
 .fr-sort { flex: none; max-width: 130px; appearance: none; border: 1px solid var(--dsw-alias-border-l1); background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-secondary); border-radius: 8px; padding: 6px 8px; font-size: 12px; font-family: inherit; }
-.fr-filter { max-width: 150px; }
+.fr-filter { flex: 1 1 110px; max-width: 150px; }
 .fr-menu-overlay { position: fixed; inset: 0; z-index: 70; }
 .fr-row-menu { position: fixed; z-index: 71; width: 168px; padding: 5px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 10px; background: var(--dsw-alias-bg-overlay); box-shadow: 0 12px 36px rgba(15, 23, 42, .22); }
 .fr-menu-item { display: block; width: 100%; padding: 8px 10px; border: none; border-radius: 7px; background: none; color: var(--dsw-alias-label-primary); font-family: inherit; font-size: 12.5px; text-align: left; cursor: pointer; }
@@ -727,13 +767,15 @@ window.__ModuleLoader__.load({
       const [dialog, setDialog] = React.useState(null)
       const [search, setSearch] = React.useState('')
       const [folderFilter, setFolderFilter] = React.useState('all')
+      const [typeFilter, setTypeFilter] = React.useState('all')
+      const [timeFilter, setTimeFilter] = React.useState('all')
       const [rowBusy, setRowBusy] = React.useState('')
       const [freshPath, setFreshPath] = React.useState('')
       const [selectedPaths, setSelectedPaths] = React.useState([])
       const [scrollTop, setScrollTop] = React.useState(0)
       const [viewportHeight, setViewportHeight] = React.useState(420)
       const [sort, setSort] = React.useState(() => {
-        const allowed = ['time-desc', 'time-asc', 'name-asc', 'name-desc', 'size-desc', 'size-asc', 'type-asc']
+        const allowed = ['time-desc', 'time-asc', 'name-asc', 'name-desc', 'size-desc', 'size-asc', 'source-asc', 'source-desc', 'type-asc']
         try {
           const saved = localStorage.getItem('shuttle.listSort')
           return allowed.includes(saved) ? saved : 'time-desc'
@@ -742,6 +784,7 @@ window.__ModuleLoader__.load({
         }
       })
       const [rowMenu, setRowMenu] = React.useState(null)
+      const [folderAreaMenu, setFolderAreaMenu] = React.useState(null)
       const [folderSeen, setFolderSeen] = React.useState(() => {
         try {
           const parsed = JSON.parse(localStorage.getItem('shuttle.folderSeen') || '{}')
@@ -792,6 +835,22 @@ window.__ModuleLoader__.load({
           document.removeEventListener('scroll', close, true)
         }
       }, [rowMenu])
+
+      React.useEffect(() => {
+        if (!folderAreaMenu) return undefined
+        const close = () => setFolderAreaMenu(null)
+        const onKey = (event) => {
+          if (event.key === 'Escape') close()
+        }
+        window.addEventListener('keydown', onKey)
+        window.addEventListener('resize', close)
+        document.addEventListener('scroll', close, true)
+        return () => {
+          window.removeEventListener('keydown', onKey)
+          window.removeEventListener('resize', close)
+          document.removeEventListener('scroll', close, true)
+        }
+      }, [folderAreaMenu])
 
       const flash = (text) => {
         setNotice(text)
@@ -1167,9 +1226,43 @@ window.__ModuleLoader__.load({
       const matchesSearch = (item) => !searchNeedle || String(item.name || '').toLowerCase().includes(searchNeedle)
       const folderFilterOptions = Array.from(new Set(receivedItems.map((item) => item.sourceDir).filter(Boolean))).sort((left, right) => left.localeCompare(right, 'zh-Hans-CN'))
       const matchesFolderFilter = (item) => !isHome || folderFilter === 'all' || !item.sourceDir || item.sourceDir === folderFilter || item.sourceDir.startsWith(folderFilter + '/')
+      const typeFilterOptions = [
+        ['all', 'files.typeAll'],
+        ['image', 'files.typeImage'],
+        ['video', 'files.typeVideo'],
+        ['audio', 'files.typeAudio'],
+        ['document', 'files.typeDocument'],
+        ['sheet', 'files.typeSheet'],
+        ['presentation', 'files.typePresentation'],
+        ['archive', 'files.typeArchive'],
+        ['code', 'files.typeCode'],
+        ['file', 'files.typeOther'],
+      ]
+      const matchesTypeFilter = (item) => !isHome || typeFilter === 'all' || fileCategory(item.name, item.kind) === typeFilter
+      const matchesTimeFilter = (item) => {
+        if (!isHome || timeFilter === 'all') return true
+        const value = Number(item.mtime)
+        if (!Number.isFinite(value) || value <= 0) return false
+        const now = new Date()
+        const date = new Date(value)
+        if (timeFilter === 'today') {
+          return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate()
+        }
+        const age = Date.now() - value
+        if (timeFilter === '7d') return age >= 0 && age <= 7 * 24 * 60 * 60 * 1000
+        if (timeFilter === '30d') return age >= 0 && age <= 30 * 24 * 60 * 60 * 1000
+        return true
+      }
       const sortParts = String(sort || 'time-desc').split('-')
       const sortKey = sortParts[0] || 'time'
       const sortAscending = sortParts[1] === 'asc'
+      const sortMark = (key) => (sortKey === key ? (sortAscending ? ' ↑' : ' ↓') : '')
+      const changeSort = (key) => {
+        const currentKey = sortKey
+        const currentAscending = sortAscending
+        if (currentKey === key) setSort(`${key}-${currentAscending ? 'desc' : 'asc'}`)
+        else setSort(`${key}-${key === 'time' ? 'desc' : 'asc'}`)
+      }
       const compareEntries = (left, right) => {
         let result = 0
         if (sortKey === 'name') {
@@ -1178,6 +1271,8 @@ window.__ModuleLoader__.load({
           result = Number(left.size || 0) - Number(right.size || 0)
         } else if (sortKey === 'type') {
           result = fileExtension(left.name).localeCompare(fileExtension(right.name)) || String(left.name || '').localeCompare(String(right.name || ''), 'zh-Hans-CN', { numeric: true, sensitivity: 'base' })
+        } else if (sortKey === 'source') {
+          result = String(left.sourceDir || '').localeCompare(String(right.sourceDir || ''), 'zh-Hans-CN', { numeric: true, sensitivity: 'base' })
         } else {
           result = Number(left.mtime || 0) - Number(right.mtime || 0)
         }
@@ -1186,7 +1281,7 @@ window.__ModuleLoader__.load({
       const visibleDirs = dirs.filter(matchesSearch).slice().sort((left, right) =>
         String(left.name || '').localeCompare(String(right.name || ''), 'zh-Hans-CN', { numeric: true, sensitivity: 'base' }),
       )
-      const visibleFiles = files.filter((item) => matchesSearch(item) && matchesFolderFilter(item)).slice().sort(compareEntries)
+      const visibleFiles = files.filter((item) => matchesSearch(item) && matchesFolderFilter(item) && matchesTypeFilter(item) && matchesTimeFilter(item)).slice().sort(compareEntries)
       const visibleTotal = visibleDirs.length + visibleFiles.length
 
       React.useEffect(() => {
@@ -1200,7 +1295,7 @@ window.__ModuleLoader__.load({
       React.useEffect(() => {
         setScrollTop(0)
         if (listRef.current) listRef.current.scrollTop = 0
-      }, [currentPath, search, sort])
+      }, [currentPath, search, sort, typeFilter, timeFilter, folderFilter])
 
       React.useEffect(() => {
         const node = listRef.current
@@ -1229,6 +1324,15 @@ window.__ModuleLoader__.load({
         const left = Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8))
         const top = rect.bottom + height + 8 > window.innerHeight ? Math.max(8, rect.top - height - 4) : rect.bottom + 4
         setRowMenu({ item, left, top })
+      }
+
+      const openFolderAreaMenu = (event) => {
+        const rect = event.currentTarget.getBoundingClientRect()
+        const width = 168
+        const height = 86
+        const left = Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8))
+        const top = rect.bottom + height + 8 > window.innerHeight ? Math.max(8, rect.top - height - 4) : rect.bottom + 4
+        setFolderAreaMenu({ left, top })
       }
 
       const renderEntry = (item) => {
@@ -1451,9 +1555,18 @@ window.__ModuleLoader__.load({
       )
 
       const parentPath = currentPath ? currentPath.split('/').slice(0, -1).join('/') : ''
-      const folderCards = isHome && folders.length > 0
+      const showFolderAdd = isHome && folders.length === 1 && folders[0] && folders[0].name === '默认'
+      const folderCards = isHome
         ? h('div', { className: 'fr-folders-wrap' },
-            h('div', { className: 'fr-folders-label' }, translate('files.groupFolders')),
+            h('div', { className: 'fr-folders-head' },
+              h('button', {
+                type: 'button',
+                className: 'fr-folder-area-more',
+                onClick: openFolderAreaMenu,
+                title: translate('files.folderAreaActions'),
+                'aria-label': translate('files.folderAreaActions'),
+              }, '⋯'),
+            ),
             h('div', { className: 'fr-folders' },
               folders.map((folder) => {
                 const updatedAt = folder.lastReceivedAt || folder.mtime || 0
@@ -1475,9 +1588,11 @@ window.__ModuleLoader__.load({
                   h('span', { className: 'fr-folder-icon' }, h(FileTypeIcon, { name: folder.name, kind: 'directory', size: 22 })),
                   h('span', { className: 'fr-folder-text' },
                     h('span', { className: 'fr-folder-name' }, folder.name),
-                    h('span', { className: 'fr-folder-time' }, formatFileTime(updatedAt, translate)),
+                    h('span', { className: 'fr-folder-time' },
+                      h('span', { className: 'fr-folder-dot' + (isNew ? ' is-new' : ''), title: isNew ? translate('files.hasNew') : '' }),
+                      formatFileTime(updatedAt, translate),
+                    ),
                   ),
-                  isNew ? h('span', { className: 'fr-folder-new' }, translate('files.newBadge')) : null,
                   h('button', {
                     type: 'button',
                     className: 'fr-folder-more',
@@ -1488,9 +1603,20 @@ window.__ModuleLoader__.load({
                     title: translate('files.more'),
                     'aria-label': translate('files.more'),
                   }, '⋯'),
-                  h('span', { className: 'fr-folder-chevron', 'aria-hidden': true }, '›'),
                 )
               }),
+              showFolderAdd
+                ? h('button', {
+                    type: 'button',
+                    className: 'fr-folder-card fr-folder-add',
+                    onClick: createFolder,
+                    title: translate('files.newFolder'),
+                    'aria-label': translate('files.newFolder'),
+                  },
+                    h('span', { className: 'fr-folder-add-icon', 'aria-hidden': true }, '+'),
+                    h('span', { className: 'fr-folder-add-label' }, translate('files.newFolder')),
+                  )
+                : null,
             ),
           )
         : null
@@ -1510,8 +1636,12 @@ window.__ModuleLoader__.load({
             currentPath.includes('/')
               ? h('button', { type: 'button', className: 'fr-btn', onClick: () => navigateTo(parentPath), disabled: busy }, '↑ ' + translate('files.up'))
               : null,
-            h('button', { type: 'button', className: 'fr-btn', onClick: createFolder, disabled: busy }, translate('files.newFolder')),
-            h('button', { type: 'button', className: 'fr-btn', onClick: openCurrentDir, disabled: busy }, translate('files.openFolder')),
+            !isHome
+              ? h('button', { type: 'button', className: 'fr-btn', onClick: createFolder, disabled: busy }, translate('files.newFolder'))
+              : null,
+            !isHome
+              ? h('button', { type: 'button', className: 'fr-btn', onClick: openCurrentDir, disabled: busy }, translate('files.openFolder'))
+              : null,
             h('button', { type: 'button', className: 'fr-btn', onClick: () => refresh(pathRef.current), disabled: busy }, translate('common.refresh')),
           ),
         ),
@@ -1535,6 +1665,29 @@ window.__ModuleLoader__.load({
               spellCheck: false,
             }),
           ),
+          isHome
+            ? h('select', {
+                className: 'fr-sort fr-filter',
+                value: typeFilter,
+                onChange: (event) => setTypeFilter(event.target.value),
+                'aria-label': translate('files.typeAll'),
+                title: translate('files.typeAll'),
+              }, typeFilterOptions.map(([value, key]) => h('option', { key: value, value }, translate(key))))
+            : null,
+          isHome
+            ? h('select', {
+                className: 'fr-sort fr-filter',
+                value: timeFilter,
+                onChange: (event) => setTimeFilter(event.target.value),
+                'aria-label': translate('files.timeAll'),
+                title: translate('files.timeAll'),
+              },
+                h('option', { value: 'all' }, translate('files.timeAll')),
+                h('option', { value: 'today' }, translate('files.timeToday')),
+                h('option', { value: '7d' }, translate('files.time7d')),
+                h('option', { value: '30d' }, translate('files.time30d')),
+              )
+            : null,
           isHome && folderFilterOptions.length > 1
             ? h('select', {
                 className: 'fr-sort fr-filter',
@@ -1547,17 +1700,6 @@ window.__ModuleLoader__.load({
                 folderFilterOptions.map((folder) => h('option', { key: folder, value: folder }, folder + '/')),
               )
             : null,
-          h(
-            'select',
-            { className: 'fr-sort', value: sort, onChange: (event) => setSort(event.target.value), 'aria-label': translate('files.sort'), title: translate('files.sort') },
-            h('option', { value: 'time-desc' }, translate('files.sortTimeDesc')),
-            h('option', { value: 'time-asc' }, translate('files.sortTimeAsc')),
-            h('option', { value: 'name-asc' }, translate('files.sortNameAsc')),
-            h('option', { value: 'name-desc' }, translate('files.sortNameDesc')),
-            h('option', { value: 'size-desc' }, translate('files.sortSizeDesc')),
-            h('option', { value: 'size-asc' }, translate('files.sortSizeAsc')),
-            h('option', { value: 'type-asc' }, translate('files.sortType')),
-          ),
         ),
         selectedCount > 0
           ? h(
@@ -1582,10 +1724,10 @@ window.__ModuleLoader__.load({
             title: translate('files.selectAll'),
           }),
           h('span'),
-          h('span', null, translate('files.colName')),
-          h('span', { className: 'fr-col-source' }, translate('files.colSource')),
-          h('span', { className: 'fr-col-size' }, translate('files.colSize')),
-          h('span', { className: 'fr-col-time' }, translate('files.colTime')),
+          h('button', { type: 'button', className: 'fr-sort-head', onClick: () => changeSort('name'), title: translate('files.colName') }, translate('files.colName') + sortMark('name')),
+          h('button', { type: 'button', className: 'fr-sort-head fr-col-source', onClick: () => changeSort('source'), title: translate('files.colSource') }, translate('files.colSource') + sortMark('source')),
+          h('button', { type: 'button', className: 'fr-sort-head fr-col-size', onClick: () => changeSort('size'), title: translate('files.colSize') }, translate('files.colSize') + sortMark('size')),
+          h('button', { type: 'button', className: 'fr-sort-head fr-col-time', onClick: () => changeSort('time'), title: translate('files.colTime') }, translate('files.colTime') + sortMark('time')),
           h('span'),
         ),
         h(
@@ -1663,6 +1805,49 @@ window.__ModuleLoader__.load({
                 networkCard,
               ),
               h('div', { className: 'fr-main' }, folderCards, filesCard),
+            )
+          : null,
+        folderAreaMenu
+          ? h(
+              'div',
+              { className: 'fr-menu-overlay', onMouseDown: () => setFolderAreaMenu(null) },
+              h(
+                'div',
+                {
+                  className: 'fr-row-menu',
+                  role: 'menu',
+                  style: { left: folderAreaMenu.left, top: folderAreaMenu.top },
+                  onMouseDown: (event) => event.stopPropagation(),
+                },
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'fr-menu-item',
+                    role: 'menuitem',
+                    disabled: busy,
+                    onClick: () => {
+                      setFolderAreaMenu(null)
+                      createFolder()
+                    },
+                  },
+                  translate('files.newFolder'),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'fr-menu-item',
+                    role: 'menuitem',
+                    disabled: busy,
+                    onClick: () => {
+                      setFolderAreaMenu(null)
+                      openCurrentDir()
+                    },
+                  },
+                  translate('files.openFolder'),
+                ),
+              ),
             )
           : null,
         rowMenu
