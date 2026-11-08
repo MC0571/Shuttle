@@ -131,6 +131,8 @@ window.__ModuleLoader__.load({
       'files.pathCopied': '路径已复制',
       'files.switchDir': '切换目录',
       'files.rootDir': '根目录',
+      'files.filter': '搜索与筛选',
+      'files.moreActions': '更多操作',
       'files.groupCount': '{label} | {n} 项',
       'files.childCount': '{n} 项',
       'files.newBadge': '新',
@@ -262,6 +264,8 @@ window.__ModuleLoader__.load({
       'files.pathCopied': 'Path copied',
       'files.switchDir': 'Switch folder',
       'files.rootDir': 'Root',
+      'files.filter': 'Search and filters',
+      'files.moreActions': 'More actions',
       'files.groupCount': '{label} | {n} items',
       'files.childCount': '{n} items',
       'files.newBadge': 'NEW',
@@ -545,6 +549,25 @@ window.__ModuleLoader__.load({
   .fr-type-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .fr-recent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+.fr-library-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex: none; padding: 12px 20px 8px; }
+.fr-library-topbar-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.fr-library-title-text { margin: 0; color: var(--dsw-alias-label-primary); font-size: 26px; font-weight: 720; letter-spacing: -.02em; line-height: 1.1; }
+.fr-library-topbar-actions { display: flex; align-items: center; gap: 2px; flex: none; }
+.fr-icon-btn { width: 34px; height: 34px; padding: 0; border: none; border-radius: 9px; background: transparent; color: var(--dsw-alias-label-secondary); display: grid; place-items: center; cursor: pointer; font-family: inherit; }
+.fr-icon-btn:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+.fr-icon-btn.active { background: rgba(37, 99, 235, .10); color: var(--dsw-alias-brand-primary); }
+.fr-icon-btn:disabled { opacity: .4; cursor: default; }
+.fr-breadcrumb-wrap { display: flex; align-items: center; gap: 4px; min-width: 0; flex: none; padding: 0 20px 10px; }
+.fr-breadcrumb-scroll { display: flex; align-items: center; gap: 1px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.fr-breadcrumb-scroll::-webkit-scrollbar { display: none; }
+.fr-crumb { flex: none; display: inline-flex; align-items: center; gap: 4px; max-width: 190px; padding: 4px 8px; border: 1px solid transparent; border-radius: 999px; background: transparent; color: var(--dsw-alias-label-secondary); font-family: inherit; font-size: 12.5px; font-weight: 500; line-height: 1.3; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fr-crumb:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+.fr-crumb.current { color: var(--dsw-alias-brand-primary); background: rgba(37, 99, 235, .10); font-weight: 650; cursor: default; }
+.fr-crumb.current:hover { background: rgba(37, 99, 235, .10); }
+.fr-crumb-root { flex: none; max-width: 140px; padding: 4px 9px; background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-secondary); border-radius: 999px; font-weight: 600; }
+.fr-crumb-label { overflow: hidden; text-overflow: ellipsis; }
+.fr-crumb-sep { flex: none; color: var(--dsw-alias-label-tertiary, var(--dsw-alias-label-secondary)); font-size: 13px; line-height: 1; }
 
 `
 
@@ -890,6 +913,8 @@ window.__ModuleLoader__.load({
       const [rowMenu, setRowMenu] = React.useState(null)
       const [folderAreaMenu, setFolderAreaMenu] = React.useState(null)
       const [dirSwitchMenu, setDirSwitchMenu] = React.useState(null)
+      const [moreMenu, setMoreMenu] = React.useState(null)
+      const [showFilters, setShowFilters] = React.useState(false)
       const [folderSeen, setFolderSeen] = React.useState(() => {
         try {
           const parsed = JSON.parse(localStorage.getItem('shuttle.folderSeen') || '{}')
@@ -901,6 +926,7 @@ window.__ModuleLoader__.load({
 
       const pathRef = React.useRef('')
       const modeRef = React.useRef('home')
+      const breadcrumbScrollRef = React.useRef(null)
       const lastBrowsePathRef = React.useRef((() => {
         try { return localStorage.getItem('shuttle.lastBrowsePath') || '' } catch { return '' }
       })())
@@ -975,6 +1001,27 @@ window.__ModuleLoader__.load({
           document.removeEventListener('scroll', close, true)
         }
       }, [dirSwitchMenu])
+
+      React.useEffect(() => {
+        if (!moreMenu) return undefined
+        const close = () => setMoreMenu(null)
+        const onKey = (event) => {
+          if (event.key === 'Escape') close()
+        }
+        window.addEventListener('keydown', onKey)
+        window.addEventListener('resize', close)
+        document.addEventListener('scroll', close, true)
+        return () => {
+          window.removeEventListener('keydown', onKey)
+          window.removeEventListener('resize', close)
+          document.removeEventListener('scroll', close, true)
+        }
+      }, [moreMenu])
+
+      React.useEffect(() => {
+        const node = breadcrumbScrollRef.current
+        if (node) node.scrollLeft = node.scrollWidth
+      }, [currentPath])
 
       const flash = (text) => {
         setNotice(text)
@@ -1534,6 +1581,21 @@ window.__ModuleLoader__.load({
       const selectSwitchDir = (target) => {
         setDirSwitchMenu(null)
         navigateTo(target)
+      }
+
+      const openMoreMenu = (event) => {
+        const rect = event.currentTarget.getBoundingClientRect()
+        const width = 168
+        const height = 112
+        const left = Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8))
+        const top = rect.bottom + height + 8 > window.innerHeight ? Math.max(8, rect.top - height - 4) : rect.bottom + 4
+        setMoreMenu({ left, top })
+      }
+
+      const openDirSwitchFromMore = () => {
+        const anchor = moreMenu
+        setMoreMenu(null)
+        setDirSwitchMenu(anchor || null)
       }
 
       const renderEntry = (item) => {
@@ -2196,54 +2258,85 @@ window.__ModuleLoader__.load({
         onClick: () => { if (isHome) enterBrowseDefault() },
       }, h('span', { className: 'fr-library-tab-icon' }, browseIcon), h('span', null, translate('files.browseTitle')))
 
+
       const breadcrumbSegments = currentPath ? currentPath.split('/').filter(Boolean) : []
-      const breadcrumb = h('nav', { className: 'fr-breadcrumb', 'aria-label': '相对路径' },
+      const rootLabel = state && state.saveDirName ? state.saveDirName : 'FileShuttle'
+      const breadcrumb = h('div', { className: 'fr-breadcrumb-wrap' },
         h('button', {
           type: 'button',
           className: 'fr-crumb fr-crumb-root' + (breadcrumbSegments.length === 0 ? ' current' : ''),
           onClick: () => navigateTo(''),
-          title: './',
+          title: rootLabel,
         },
-          h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true },
-            h('path', { d: 'M3.5 10.5L12 3.5l8.5 7' }),
-            h('path', { d: 'M5.5 9.5v9a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5v-9' }),
-          ),
-          h('span', null, './'),
+          h(FileTypeIcon, { name: rootLabel, kind: 'directory', size: 14 }),
+          h('span', { className: 'fr-crumb-label' }, rootLabel),
         ),
-        breadcrumbSegments.map((segment, index) => {
-          const target = breadcrumbSegments.slice(0, index + 1).join('/')
-          const isCurrent = index === breadcrumbSegments.length - 1
-          return h(React.Fragment, { key: target },
-            h('span', { className: 'fr-crumb-sep', 'aria-hidden': true }, '›'),
-            h('button', {
-              type: 'button',
-              className: 'fr-crumb' + (isCurrent ? ' current' : ''),
-              onClick: () => navigateTo(target),
-              title: './' + target,
-            }, segment),
-          )
-        }),
+        breadcrumbSegments.length > 0 ? h('span', { className: 'fr-crumb-sep', 'aria-hidden': true }, '›') : null,
+        h('div', { className: 'fr-breadcrumb-scroll', ref: breadcrumbScrollRef },
+          breadcrumbSegments.map((segment, index) => {
+            const target = breadcrumbSegments.slice(0, index + 1).join('/')
+            const isCurrent = index === breadcrumbSegments.length - 1
+            return h(React.Fragment, { key: target },
+              index > 0 ? h('span', { className: 'fr-crumb-sep', 'aria-hidden': true }, '›') : null,
+              h('button', {
+                type: 'button',
+                className: 'fr-crumb' + (isCurrent ? ' current' : ''),
+                onClick: () => navigateTo(target),
+                title: target,
+              }, segment),
+            )
+          }),
+        ),
       )
 
-      const refreshButton = h('button', { type: 'button', className: 'fr-btn', onClick: () => refresh(pathRef.current), disabled: busy }, translate('common.refresh'))
-      const browseActions = !isHome
-        ? h('div', { className: 'fr-library-action-row' },
-            h('button', { type: 'button', className: 'fr-btn fr-dir-switch', onClick: openDirSwitchMenu, disabled: busy || folders.length === 0 }, translate('files.switchDir')),
-            h('button', { type: 'button', className: 'fr-btn', onClick: createFolder, disabled: busy }, translate('files.newFolder')),
-            h('button', { type: 'button', className: 'fr-btn', onClick: openCurrentDir, disabled: busy }, translate('files.openFolder')),
-            refreshButton,
+      const topIcon = (kind) => {
+        if (kind === 'new-folder') {
+          return h('svg', { width: 19, height: 19, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true },
+            h('path', { d: 'M3.5 6.8a1.7 1.7 0 0 1 1.7-1.7h4l1.8 2.2h7.8a1.7 1.7 0 0 1 1.7 1.7v8.2a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7z' }),
+            h('path', { d: 'M12 11v5M9.5 13.5h5' }),
           )
-        : null
-      const libraryCard = h('section', { className: 'fr-library-card' },
-        h('div', { className: 'fr-library-head' },
-          h('div', { className: 'fr-library-title' },
-            !isHome ? h('button', { type: 'button', className: 'fr-back', onClick: backToHome, title: translate('files.back'), 'aria-label': translate('files.back') }, '←') : null,
-            isHome ? h('h2', null, translate('files.recentTitle')) : breadcrumb,
-          ),
-          isHome ? h('div', { className: 'fr-library-actions' }, refreshButton) : null,
+        }
+        if (kind === 'filter') {
+          return h('svg', { width: 19, height: 19, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', 'aria-hidden': true },
+            h('path', { d: 'M4 7h16M7 12h10M10 17h4' }),
+            h('circle', { cx: 8, cy: 7, r: 2, fill: 'var(--dsw-alias-bg-layer-1)' }),
+            h('circle', { cx: 15, cy: 12, r: 2, fill: 'var(--dsw-alias-bg-layer-1)' }),
+            h('circle', { cx: 12, cy: 17, r: 2, fill: 'var(--dsw-alias-bg-layer-1)' }),
+          )
+        }
+        return h('svg', { width: 19, height: 19, viewBox: '0 0 24 24', fill: 'currentColor', 'aria-hidden': true },
+          h('circle', { cx: 5, cy: 12, r: 1.7 }),
+          h('circle', { cx: 12, cy: 12, r: 1.7 }),
+          h('circle', { cx: 19, cy: 12, r: 1.7 }),
+        )
+      }
+
+      const topAction = (kind, label, onClick, disabled, active) => h('button', {
+        type: 'button',
+        className: 'fr-icon-btn' + (active ? ' active' : ''),
+        onClick,
+        disabled,
+        title: label,
+        'aria-label': label,
+      }, topIcon(kind))
+
+      const topbar = h('div', { className: 'fr-library-topbar' },
+        h('div', { className: 'fr-library-topbar-left' },
+          !isHome
+            ? h('button', { type: 'button', className: 'fr-back', onClick: backToHome, title: translate('files.back'), 'aria-label': translate('files.back') }, '←')
+            : h('h2', { className: 'fr-library-title-text' }, translate('files.recentTitle')),
         ),
-        browseActions,
-        isHome ? recentToolbar : browseToolbar,
+        h('div', { className: 'fr-library-topbar-actions' },
+          !isHome ? topAction('new-folder', translate('files.newFolder'), createFolder, busy, false) : null,
+          topAction('filter', translate('files.filter'), () => setShowFilters((value) => !value), false, showFilters || typeFilter !== 'all' || timeFilter !== 'all' || folderFilter !== 'all'),
+          topAction('more', translate('files.moreActions'), openMoreMenu, false, false),
+        ),
+      )
+
+      const libraryCard = h('section', { className: 'fr-library-card' },
+        topbar,
+        isHome ? null : breadcrumb,
+        showFilters ? (isHome ? recentToolbar : browseToolbar) : null,
         isHome ? recentView : browseView,
         h('div', { className: 'fr-library-nav' }, recentTab, browseTab),
       )
@@ -2296,6 +2389,50 @@ window.__ModuleLoader__.load({
                 networkCard,
               ),
               h('div', { className: 'fr-main' }, libraryCard),
+            )
+          : null,
+        moreMenu
+          ? h(
+              'div',
+              { className: 'fr-menu-overlay', onMouseDown: () => setMoreMenu(null) },
+              h(
+                'div',
+                {
+                  className: 'fr-row-menu',
+                  role: 'menu',
+                  style: { left: moreMenu.left, top: moreMenu.top },
+                  onMouseDown: (event) => event.stopPropagation(),
+                },
+                !isHome
+                  ? h('button', {
+                      type: 'button',
+                      className: 'fr-menu-item',
+                      role: 'menuitem',
+                      disabled: busy || folders.length === 0,
+                      onClick: openDirSwitchFromMore,
+                    }, translate('files.switchDir'))
+                  : null,
+                h('button', {
+                  type: 'button',
+                  className: 'fr-menu-item',
+                  role: 'menuitem',
+                  disabled: busy,
+                  onClick: () => {
+                    setMoreMenu(null)
+                    openCurrentDir()
+                  },
+                }, translate('files.openFolder')),
+                h('button', {
+                  type: 'button',
+                  className: 'fr-menu-item',
+                  role: 'menuitem',
+                  disabled: busy,
+                  onClick: () => {
+                    setMoreMenu(null)
+                    refresh(pathRef.current)
+                  },
+                }, translate('common.refresh')),
+              ),
             )
           : null,
         dirSwitchMenu
