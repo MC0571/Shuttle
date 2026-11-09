@@ -78,6 +78,17 @@ window.__ModuleLoader__.load({
       'files.count': '{dirs} 个文件夹 · {files} 个文件',
       'files.countFiles': '{files} 个接收文件',
       'files.search': '搜索文件名…',
+      'files.viewSort': '视图与排序',
+      'files.searchTypeHeading': '按类型查找',
+      'files.searchFolderHeading': '按目录查找',
+      'files.searchTimeHeading': '按时间查找',
+      'files.searchResults': '搜索到结果（{n} 项）',
+      'files.searchHint': '输入文件名，或选择类型、目录、时间开始搜索',
+      'files.viewMode': '显示方式',
+      'files.viewGrid': '宫格',
+      'files.viewList': '列表',
+      'files.sortMode': '排序方式',
+      'files.sortDate': '文件日期',
       'files.sort': '排序',
       'files.sortTimeDesc': '最新优先',
       'files.sortTimeAsc': '最早优先',
@@ -119,6 +130,8 @@ window.__ModuleLoader__.load({
       'files.typeSheet': '表格',
       'files.typePresentation': '演示文稿',
       'files.typeArchive': '压缩包',
+      'files.typePackage': '安装包',
+      'files.typeFolder': '文件夹',
       'files.typeCode': '代码',
       'files.typeOther': '其他',
       'files.timeAll': '全部时间',
@@ -211,6 +224,17 @@ window.__ModuleLoader__.load({
       'files.count': '{dirs} folders · {files} files',
       'files.countFiles': '{files} received files',
       'files.search': 'Search file name…',
+      'files.viewSort': 'View and sort',
+      'files.searchTypeHeading': 'Search by type',
+      'files.searchFolderHeading': 'Search by folder',
+      'files.searchTimeHeading': 'Search by time',
+      'files.searchResults': 'Search results ({n})',
+      'files.searchHint': 'Type a file name, or choose a type, folder, or time to start',
+      'files.viewMode': 'View',
+      'files.viewGrid': 'Grid',
+      'files.viewList': 'List',
+      'files.sortMode': 'Sort',
+      'files.sortDate': 'File date',
       'files.sort': 'Sort',
       'files.sortTimeDesc': 'Newest first',
       'files.sortTimeAsc': 'Oldest first',
@@ -252,6 +276,8 @@ window.__ModuleLoader__.load({
       'files.typeSheet': 'Spreadsheets',
       'files.typePresentation': 'Presentations',
       'files.typeArchive': 'Archives',
+      'files.typePackage': 'Packages',
+      'files.typeFolder': 'Folders',
       'files.typeCode': 'Code',
       'files.typeOther': 'Other',
       'files.timeAll': 'All time',
@@ -570,6 +596,45 @@ window.__ModuleLoader__.load({
 .fr-crumb-label { overflow: hidden; text-overflow: ellipsis; }
 .fr-crumb-sep { flex: none; color: var(--dsw-alias-label-tertiary, var(--dsw-alias-label-secondary)); font-size: 13px; line-height: 1; }
 
+.fr-search-card { flex: 1; min-height: 0; }
+.fr-search-header { display: flex; align-items: center; gap: 10px; flex: none; padding: 14px 20px 12px; border-bottom: 1px solid var(--dsw-alias-border-l1); }
+.fr-search-large { flex: 1; min-width: 0; padding: 9px 13px; border: none; border-radius: 12px; background: var(--dsw-alias-bg-layer-2); }
+.fr-search-large input { font-size: 14px; }
+.fr-search-clear { flex: none; width: 26px; height: 26px; border: none; border-radius: 50%; background: transparent; color: var(--dsw-alias-label-secondary); font-size: 17px; line-height: 1; cursor: pointer; }
+.fr-search-clear:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+.fr-search-body { flex: 1; min-height: 0; overflow: auto; padding: 18px 20px 20px; }
+.fr-search-heading { margin: 0 0 10px; color: var(--dsw-alias-label-secondary); font-size: 12px; font-weight: 600; }
+.fr-search-heading:not(:first-child) { margin-top: 20px; }
+.fr-search-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.fr-search-chip { appearance: none; border: none; border-radius: 10px; background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); font-family: inherit; font-size: 13px; padding: 7px 14px; cursor: pointer; }
+.fr-search-chip:hover { background: var(--dsw-alias-bg-layer-3, var(--dsw-alias-bg-layer-2)); }
+.fr-search-chip.active { background: rgba(37, 99, 235, .12); color: var(--dsw-alias-brand-primary); font-weight: 600; }
+.fr-search-results-head { margin: 22px 0 4px; color: var(--dsw-alias-label-secondary); font-size: 12px; }
+.fr-search-hint { margin-top: 26px; color: var(--dsw-alias-label-secondary); font-size: 12.5px; line-height: 1.5; }
+.fr-search-empty { min-height: 180px; }
+.fr-view-menu { position: fixed; z-index: 72; width: 196px; padding: 6px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 12px; background: var(--dsw-alias-bg-overlay); box-shadow: 0 12px 36px rgba(15, 23, 42, .22); }
+.fr-view-menu-label { padding: 8px 10px 5px; color: var(--dsw-alias-label-secondary); font-size: 11px; font-weight: 650; }
+.fr-view-menu-item { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 10px; border: none; border-radius: 7px; background: transparent; color: var(--dsw-alias-label-primary); font-family: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.fr-view-menu-item:hover { background: var(--dsw-alias-bg-layer-2); }
+.fr-view-menu-item.active { color: var(--dsw-alias-brand-primary); }
+.fr-view-check { color: var(--dsw-alias-brand-primary); font-size: 13px; }
+.fr-view-menu-sep { height: 1px; margin: 5px 0; background: var(--dsw-alias-border-l1); }
+.fr-recent-list { display: flex; flex-direction: column; }
+.fr-browse-source { color: var(--dsw-alias-label-tertiary, var(--dsw-alias-label-secondary)); font-size: 10.5px; }
+.fr-browse-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 14px; }
+.fr-browse-grid-card { position: relative; min-width: 0; cursor: pointer; outline: none; }
+.fr-browse-grid-icon, .fr-browse-grid-preview { width: 100%; aspect-ratio: 1 / 1; border-radius: 16px; overflow: hidden; display: grid; place-items: center; background: var(--dsw-alias-bg-base); border: 1px solid var(--dsw-alias-border-l1); }
+.fr-browse-grid-icon { color: #3b82f6; background: rgba(59, 130, 246, .10); }
+.fr-browse-grid-media { position: relative; width: 100%; height: 100%; display: grid; place-items: center; }
+.fr-browse-grid-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.fr-browse-grid-name { margin-top: 8px; color: var(--dsw-alias-label-primary); font-size: 13px; font-weight: 600; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.fr-browse-grid-meta { margin-top: 2px; color: var(--dsw-alias-label-secondary); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fr-browse-grid-more { position: absolute; top: 7px; right: 7px; width: 26px; height: 26px; border: 1px solid var(--dsw-alias-border-l1); border-radius: 8px; background: var(--dsw-alias-bg-overlay); color: var(--dsw-alias-label-secondary); font-size: 16px; line-height: 1; cursor: pointer; opacity: 0; transition: opacity .14s ease; }
+.fr-browse-grid-card:hover .fr-browse-grid-more, .fr-browse-grid-more:focus-visible { opacity: 1; }
+@media (max-width: 900px) {
+  .fr-browse-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 `
 
     function postJson(body) {
@@ -656,6 +721,7 @@ window.__ModuleLoader__.load({
       if (['mp4', 'mov', 'm4v', 'avi', 'mkv', 'webm', 'ts'].includes(extension)) return 'video'
       if (['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg'].includes(extension)) return 'audio'
       if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz'].includes(extension)) return 'archive'
+      if (['apk', 'ipa', 'xapk', 'aab'].includes(extension)) return 'package'
       if (['xls', 'xlsx', 'csv', 'numbers'].includes(extension)) return 'sheet'
       if (['ppt', 'pptx', 'key'].includes(extension)) return 'presentation'
       if (['js', 'ts', 'jsx', 'tsx', 'json', 'html', 'css', 'py', 'go', 'rs', 'java', 'sh'].includes(extension)) return 'code'
@@ -921,7 +987,14 @@ window.__ModuleLoader__.load({
       const [folderAreaMenu, setFolderAreaMenu] = React.useState(null)
       const [dirSwitchMenu, setDirSwitchMenu] = React.useState(null)
       const [moreMenu, setMoreMenu] = React.useState(null)
-      const [showFilters, setShowFilters] = React.useState(false)
+      const [viewMenu, setViewMenu] = React.useState(null)
+      const [searchOpen, setSearchOpen] = React.useState(false)
+      const [recentViewMode, setRecentViewMode] = React.useState(() => {
+        try { return localStorage.getItem('shuttle.recentView') === 'list' ? 'list' : 'grid' } catch { return 'grid' }
+      })
+      const [browseViewMode, setBrowseViewMode] = React.useState(() => {
+        try { return localStorage.getItem('shuttle.browseView') === 'grid' ? 'grid' : 'list' } catch { return 'list' }
+      })
       const [folderSeen, setFolderSeen] = React.useState(() => {
         try {
           const parsed = JSON.parse(localStorage.getItem('shuttle.folderSeen') || '{}')
@@ -1024,6 +1097,22 @@ window.__ModuleLoader__.load({
           document.removeEventListener('scroll', close, true)
         }
       }, [moreMenu])
+
+      React.useEffect(() => {
+        if (!viewMenu) return undefined
+        const close = () => setViewMenu(null)
+        const onKey = (event) => {
+          if (event.key === 'Escape') close()
+        }
+        window.addEventListener('keydown', onKey)
+        window.addEventListener('resize', close)
+        document.addEventListener('scroll', close, true)
+        return () => {
+          window.removeEventListener('keydown', onKey)
+          window.removeEventListener('resize', close)
+          document.removeEventListener('scroll', close, true)
+        }
+      }, [viewMenu])
 
       React.useEffect(() => {
         const node = breadcrumbScrollRef.current
@@ -1208,6 +1297,7 @@ window.__ModuleLoader__.load({
       }
 
       const navigateTo = (target) => {
+        setSearchOpen(false)
         modeRef.current = 'browse'
         setMode('browse')
         setListing(null)
@@ -1446,7 +1536,7 @@ window.__ModuleLoader__.load({
       const searchNeedle = search.trim().toLowerCase()
       const matchesSearch = (item) => !searchNeedle || String(item.name || '').toLowerCase().includes(searchNeedle)
       const folderFilterOptions = Array.from(new Set(receivedItems.map((item) => item.sourceDir).filter(Boolean))).sort((left, right) => left.localeCompare(right, 'zh-Hans-CN'))
-      const matchesFolderFilter = (item) => !isHome || folderFilter === 'all' || !item.sourceDir || item.sourceDir === folderFilter || item.sourceDir.startsWith(folderFilter + '/')
+      const matchesFolderFilter = (item) => folderFilter === 'all' || !item.sourceDir || item.sourceDir === folderFilter || item.sourceDir.startsWith(folderFilter + '/')
       const typeFilterOptions = [
         ['all', 'files.typeAll'],
         ['image', 'files.typeImage'],
@@ -1456,7 +1546,9 @@ window.__ModuleLoader__.load({
         ['sheet', 'files.typeSheet'],
         ['presentation', 'files.typePresentation'],
         ['archive', 'files.typeArchive'],
+        ['package', 'files.typePackage'],
         ['code', 'files.typeCode'],
+        ['folder', 'files.typeFolder'],
         ['file', 'files.typeOther'],
       ]
       const matchesTypeFilter = (item) => {
@@ -1466,7 +1558,7 @@ window.__ModuleLoader__.load({
         return category === typeFilter
       }
       const matchesTimeFilter = (item) => {
-        if (!isHome || timeFilter === 'all') return true
+        if (timeFilter === 'all') return true
         const value = Number(item.mtime)
         if (!Number.isFinite(value) || value <= 0) return false
         const now = new Date()
@@ -1504,7 +1596,7 @@ window.__ModuleLoader__.load({
         }
         return sortAscending ? result : -result
       }
-      const visibleDirs = dirs.filter(matchesSearch).slice().sort((left, right) =>
+      const visibleDirs = dirs.filter((item) => matchesSearch(item) && matchesTypeFilter(item)).slice().sort((left, right) =>
         String(left.name || '').localeCompare(String(right.name || ''), 'zh-Hans-CN', { numeric: true, sensitivity: 'base' }),
       )
       const visibleFiles = files.filter((item) => matchesSearch(item) && matchesFolderFilter(item) && matchesTypeFilter(item) && matchesTimeFilter(item)).slice().sort(compareEntries)
@@ -1593,7 +1685,7 @@ window.__ModuleLoader__.load({
       const openMoreMenu = (event) => {
         const rect = event.currentTarget.getBoundingClientRect()
         const width = 168
-        const height = 112
+        const height = isHome ? 112 : 152
         const left = Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8))
         const top = rect.bottom + height + 8 > window.innerHeight ? Math.max(8, rect.top - height - 4) : rect.bottom + 4
         setMoreMenu({ left, top })
@@ -1603,6 +1695,40 @@ window.__ModuleLoader__.load({
         const anchor = moreMenu
         setMoreMenu(null)
         setDirSwitchMenu(anchor || null)
+      }
+
+      const openViewMenu = (event) => {
+        const rect = event.currentTarget.getBoundingClientRect()
+        const width = 196
+        const height = isHome ? 282 : 250
+        const left = Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8))
+        const top = rect.bottom + height + 8 > window.innerHeight ? Math.max(8, rect.top - height - 4) : rect.bottom + 4
+        setViewMenu({ left, top })
+      }
+
+      const setViewMode = (mode) => {
+        if (isHome) {
+          setRecentViewMode(mode)
+          try { localStorage.setItem('shuttle.recentView', mode) } catch { /* 忽略 */ }
+        } else {
+          setBrowseViewMode(mode)
+          try { localStorage.setItem('shuttle.browseView', mode) } catch { /* 忽略 */ }
+        }
+        setViewMenu(null)
+      }
+
+      const openSearch = () => {
+        setViewMenu(null)
+        setMoreMenu(null)
+        setSearchOpen(true)
+      }
+
+      const closeSearch = () => {
+        setSearchOpen(false)
+        setSearch('')
+        setTypeFilter('all')
+        setTimeFilter('all')
+        setFolderFilter('all')
       }
 
       const renderEntry = (item) => {
@@ -2119,9 +2245,38 @@ window.__ModuleLoader__.load({
             ' · ',
             formatSize(item.size),
             fileExtension(item.name) ? h('span', { className: 'fr-file-type-tag' }, fileExtension(item.name).toUpperCase()) : null,
+            item.sourceDir ? h('span', { className: 'fr-browse-source' }, item.sourceDir + '/') : null,
           ),
         ),
         renderItemMore(item, 'fr-browse-more'),
+      )
+
+
+      const renderBrowseGridFolder = (item) => h('article', {
+          key: item.path,
+          className: 'fr-browse-grid-card fr-browse-grid-folder',
+          onClick: () => navigateTo(item.path),
+          title: item.name,
+        },
+        h('span', { className: 'fr-browse-grid-icon' }, h(FileTypeIcon, { name: item.name, kind: 'directory', size: 38 })),
+        h('span', { className: 'fr-browse-grid-name' }, item.name),
+        h('span', { className: 'fr-browse-grid-meta' },
+          formatFileTime(item.mtime, translate),
+          typeof item.childCount === 'number' ? ' · ' + translate('files.childCount').replace('{n}', String(item.childCount)) : '',
+        ),
+        renderItemMore(item, 'fr-browse-grid-more'),
+      )
+
+      const renderBrowseGridFile = (item) => h('article', {
+          key: item.path,
+          className: 'fr-browse-grid-card fr-browse-grid-file' + (freshPath === item.path ? ' fr-browse-new' : ''),
+          onClick: () => openItem(item),
+          title: item.name,
+        },
+        h('span', { className: 'fr-browse-grid-preview' }, renderMediaPreview(item, 'fr-browse-grid-media')),
+        renderItemMore(item, 'fr-browse-grid-more'),
+        h('span', { className: 'fr-browse-grid-name' }, fileBaseName(item.name)),
+        h('span', { className: 'fr-browse-grid-meta' }, formatSize(item.size)),
       )
 
       const browseTypeCard = (value, sample, label, colorClass) => h('button', {
@@ -2226,27 +2381,125 @@ window.__ModuleLoader__.load({
                 h('span', { className: 'fr-date-chevron' + (collapsedGroups[group.key] ? ' collapsed' : '') }, '⌄'),
               ),
               !collapsedGroups[group.key]
-                ? h('div', { className: 'fr-recent-grid' }, group.items.map(renderRecentCard))
+                ? (recentViewMode === 'list'
+                    ? h('div', { className: 'fr-recent-list' }, group.items.map(renderBrowseFile))
+                    : h('div', { className: 'fr-recent-grid' }, group.items.map(renderRecentCard)))
                 : null,
             )),
         h('div', { className: 'fr-library-foot' }, translate('files.countFiles').replace('{files}', String(visibleFiles.length))),
       )
 
+      const browseBody = browseViewMode === 'grid'
+        ? h('div', { className: 'fr-browse-grid' },
+            visibleDirs.map(renderBrowseGridFolder),
+            visibleFiles.map(renderBrowseGridFile),
+          )
+        : h('div', { className: 'fr-browse-list' },
+            visibleDirs.map(renderBrowseFolder),
+            visibleFiles.map(renderBrowseFile),
+          )
+
       const browseView = h('div', { className: 'fr-library-body' },
-        h('div', { className: 'fr-type-grid' },
-          browseTypeCard('document', 'a.pdf', translate('files.typeDocument'), 'fr-type-yellow'),
-          browseTypeCard('image', 'a.jpg', translate('files.typeImage'), 'fr-type-purple'),
-          browseTypeCard('video', 'a.mp4', translate('files.typeVideo'), 'fr-type-blue'),
-          browseTypeCard('audio', 'a.mp3', translate('files.typeAudio'), 'fr-type-red'),
-        ),
-        (visibleDirs.length + visibleFiles.length) === 0
-          ? browseEmpty
-          : h('div', { className: 'fr-browse-list' },
-              visibleDirs.map(renderBrowseFolder),
-              visibleFiles.map(renderBrowseFile),
-            ),
+        (visibleDirs.length + visibleFiles.length) === 0 ? browseEmpty : browseBody,
         h('div', { className: 'fr-library-foot' },
           translate('files.count').replace('{dirs}', String(visibleDirs.length)).replace('{files}', String(visibleFiles.length)),
+        ),
+      )
+
+      const searchTypeOptions = [
+        ['all', 'files.typeAll'],
+        ['document', 'files.typeDocument'],
+        ['image', 'files.typeImage'],
+        ['video', 'files.typeVideo'],
+        ['audio', 'files.typeAudio'],
+        ['archive', 'files.typeArchive'],
+        ['package', 'files.typePackage'],
+        ['folder', 'files.typeFolder'],
+      ]
+      const searchDirectoryPaths = new Set()
+      for (const item of receivedItems) {
+        if (!item.sourceDir) continue
+        const parts = String(item.sourceDir).split('/').filter(Boolean)
+        for (let index = 1; index <= parts.length; index += 1) {
+          searchDirectoryPaths.add(parts.slice(0, index).join('/'))
+        }
+      }
+      const searchDirs = Array.from(searchDirectoryPaths)
+        .filter((directory) => !searchNeedle || directory.toLowerCase().includes(searchNeedle))
+        .filter((directory) => folderFilter === 'all' || directory === folderFilter || directory.startsWith(folderFilter + '/'))
+        .filter((directory) => typeFilter === 'all' || typeFilter === 'folder')
+        .map((directory) => ({
+          path: directory,
+          name: directory.split('/').pop(),
+          kind: 'directory',
+          mtime: 0,
+          childCount: 0,
+        }))
+      const searchFiles = receivedItems
+        .filter((item) => matchesSearch(item) && matchesFolderFilter(item) && matchesTypeFilter(item) && matchesTimeFilter(item))
+        .slice()
+        .sort(compareEntries)
+      const searchResultCount = searchDirs.length + searchFiles.length
+      const hasSearchCriteria = Boolean(searchNeedle) || typeFilter !== 'all' || folderFilter !== 'all' || timeFilter !== 'all'
+      const searchChip = (active, label, onClick, key) => h('button', {
+        key,
+        type: 'button',
+        className: 'fr-search-chip' + (active ? ' active' : ''),
+        onClick,
+      }, label)
+      const searchView = h('section', { className: 'fr-library-card fr-search-card' },
+        h('div', { className: 'fr-search-header' },
+          h('button', { type: 'button', className: 'fr-back', onClick: closeSearch, title: translate('files.back'), 'aria-label': translate('files.back') }, '←'),
+          h('label', { className: 'fr-search fr-search-large' },
+            h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', 'aria-hidden': true },
+              h('circle', { cx: 11, cy: 11, r: 6.5 }),
+              h('path', { d: 'M16 16l4.5 4.5' }),
+            ),
+            h('input', {
+              value: search,
+              onChange: (event) => setSearch(event.target.value),
+              placeholder: translate('files.search'),
+              'aria-label': translate('files.search'),
+              spellCheck: false,
+              autoFocus: true,
+            }),
+            search ? h('button', { type: 'button', className: 'fr-search-clear', onClick: () => setSearch(''), 'aria-label': translate('files.clearSearch'), title: translate('files.clearSearch') }, '×') : null,
+          ),
+        ),
+        h('div', { className: 'fr-search-body' },
+          h('h3', { className: 'fr-search-heading' }, translate('files.searchTypeHeading')),
+          h('div', { className: 'fr-search-chips' }, searchTypeOptions.map(([value, key]) => searchChip(typeFilter === value, translate(key), () => setTypeFilter(value), value))),
+          folderFilterOptions.length > 1
+            ? [
+                h('h3', { className: 'fr-search-heading', key: 'dir-heading' }, translate('files.searchFolderHeading')),
+                h('div', { className: 'fr-search-chips', key: 'dir-chips' },
+                  searchChip(folderFilter === 'all', translate('files.allFolders'), () => setFolderFilter('all'), 'dir-all'),
+                  folderFilterOptions.map((folder) => searchChip(folderFilter === folder, folder + '/', () => setFolderFilter(folder), 'dir-' + folder)),
+                ),
+              ]
+            : null,
+          h('h3', { className: 'fr-search-heading' }, translate('files.searchTimeHeading')),
+          h('div', { className: 'fr-search-chips' },
+            searchChip(timeFilter === 'all', translate('files.timeAll'), () => setTimeFilter('all'), 'time-all'),
+            searchChip(timeFilter === 'today', translate('files.timeToday'), () => setTimeFilter('today'), 'time-today'),
+            searchChip(timeFilter === '7d', translate('files.time7d'), () => setTimeFilter('7d'), 'time-7d'),
+            searchChip(timeFilter === '30d', translate('files.time30d'), () => setTimeFilter('30d'), 'time-30d'),
+          ),
+          hasSearchCriteria
+            ? h('div', { className: 'fr-search-results-head' }, translate('files.searchResults').replace('{n}', String(searchResultCount)))
+            : h('div', { className: 'fr-search-hint' }, translate('files.searchHint')),
+          hasSearchCriteria && searchResultCount === 0
+            ? h('div', { className: 'fr-library-empty fr-search-empty' },
+                h('span', { className: 'fr-empty-glyph', 'aria-hidden': true }, h(FileTypeIcon, { name: 'file', kind: 'file', size: 38 })),
+                h('strong', null, translate('files.noMatch')),
+              )
+            : null,
+          hasSearchCriteria && searchResultCount > 0
+            ? h('div', { className: 'fr-browse-list fr-search-results' },
+                searchDirs.map(renderBrowseFolder),
+                searchFiles.map(renderBrowseFile),
+              )
+            : null,
         ),
       )
 
@@ -2307,6 +2560,12 @@ window.__ModuleLoader__.load({
             h('path', { d: 'M12 11v5M9.5 13.5h5' }),
           )
         }
+        if (kind === 'search') {
+          return h('svg', { width: 19, height: 19, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', 'aria-hidden': true },
+            h('circle', { cx: 10.5, cy: 10.5, r: 6.2 }),
+            h('path', { d: 'M15.2 15.2L20 20' }),
+          )
+        }
         if (kind === 'filter') {
           return h('svg', { width: 19, height: 19, viewBox: '0 0 1024 1024', fill: 'currentColor', 'aria-hidden': true },
             h('path', { d: 'M639.573333 125.013333c-54.058667 0-104.533333 35.498667-120.234666 85.418667L170.24 210.346667a42.666667 42.666667 0 0 0 0 85.333333l349.013333-0.042667c19.157333 52.266667 66.218667 85.333333 120.32 85.333334 54.101333 0 101.632-33.152 121.088-85.674667l92.245334 0.384a42.666667 42.666667 0 0 0 0-85.333333h-92.586667c-20.565333-52.053333-66.688-85.333333-120.746667-85.333334z m0 85.333334a42.666667 42.666667 0 1 1 0 85.333333 42.666667 42.666667 0 0 1 0-85.333333z m-256 170.666666c-56.192 0-103.253333 34.986667-120.448 85.418667-5.973333 0.384-92.842667-0.085333-92.842666-0.085333a42.666667 42.666667 0 0 0 0 85.333333s87.552-0.896 93.013333-0.341333a126.037333 126.037333 0 0 0 120.32 85.674666c54.101333 0 100.437333-33.152 120.746667-85.205333l348.586666-0.128a42.666667 42.666667 0 0 0 0-85.333333l-348.842666-0.426667A128.512 128.512 0 0 0 383.573333 381.013333z m0 85.333334a42.666667 42.666667 0 1 1 0 85.333333 42.666667 42.666667 0 0 1 0-85.333333z m256 170.666666c-54.058667 0-103.552 35.626667-120.277333 84.906667l-349.013333 0.426667a42.666667 42.666667 0 0 0 0 85.333333h348.373333a128.853333 128.853333 0 0 0 120.96 85.333333c54.101333 0 100.693333-33.834667 121.258667-85.333333h92.074666a42.666667 42.666667 0 0 0 0-85.333333l-92.458666-0.256a129.450667 129.450667 0 0 0-120.874667-85.077334z m0 85.333334a42.666667 42.666667 0 1 1 0 85.333333 42.666667 42.666667 0 0 1 0-85.333333z' }),
@@ -2335,16 +2594,15 @@ window.__ModuleLoader__.load({
             : h('h2', { className: 'fr-library-title-text' }, translate('files.recentTitle')),
         ),
         h('div', { className: 'fr-library-topbar-actions' },
-          !isHome ? topAction('new-folder', translate('files.newFolder'), createFolder, busy, false) : null,
-          topAction('filter', translate('files.filter'), () => setShowFilters((value) => !value), false, showFilters || typeFilter !== 'all' || timeFilter !== 'all' || folderFilter !== 'all'),
-          topAction('more', translate('files.moreActions'), openMoreMenu, false, false),
+          topAction('search', translate('files.search'), openSearch, false, searchOpen),
+          topAction('filter', translate('files.viewSort'), openViewMenu, false, Boolean(viewMenu)),
+          topAction('more', translate('files.moreActions'), openMoreMenu, false, Boolean(moreMenu)),
         ),
       )
 
-      const libraryCard = h('section', { className: 'fr-library-card' },
+      const libraryCard = searchOpen ? searchView : h('section', { className: 'fr-library-card' },
         topbar,
         isHome ? null : breadcrumb,
-        showFilters ? (isHome ? recentToolbar : browseToolbar) : null,
         isHome ? recentView : browseView,
         h('div', { className: 'fr-library-nav' }, recentTab, browseTab),
       )
@@ -2399,6 +2657,54 @@ window.__ModuleLoader__.load({
               h('div', { className: 'fr-main' }, libraryCard),
             )
           : null,
+        viewMenu
+          ? h(
+              'div',
+              { className: 'fr-menu-overlay', onMouseDown: () => setViewMenu(null) },
+              h(
+                'div',
+                {
+                  className: 'fr-view-menu',
+                  role: 'menu',
+                  style: { left: viewMenu.left, top: viewMenu.top },
+                  onMouseDown: (event) => event.stopPropagation(),
+                },
+                h('div', { className: 'fr-view-menu-label' }, translate('files.viewMode')),
+                h('button', {
+                  type: 'button',
+                  className: 'fr-view-menu-item' + ((isHome ? recentViewMode : browseViewMode) === 'grid' ? ' active' : ''),
+                  role: 'menuitem',
+                  onClick: () => setViewMode('grid'),
+                },
+                  translate('files.viewGrid'),
+                  (isHome ? recentViewMode : browseViewMode) === 'grid' ? h('span', { className: 'fr-view-check' }, '✓') : null,
+                ),
+                h('button', {
+                  type: 'button',
+                  className: 'fr-view-menu-item' + ((isHome ? recentViewMode : browseViewMode) === 'list' ? ' active' : ''),
+                  role: 'menuitem',
+                  onClick: () => setViewMode('list'),
+                },
+                  translate('files.viewList'),
+                  (isHome ? recentViewMode : browseViewMode) === 'list' ? h('span', { className: 'fr-view-check' }, '✓') : null,
+                ),
+                h('div', { className: 'fr-view-menu-sep' }),
+                h('div', { className: 'fr-view-menu-label' }, translate('files.sortMode')),
+                [['time', 'files.sortDate'], ['name', 'files.colName'], ['size', 'files.colSize']].concat(isHome ? [['source', 'files.colSource']] : []).map(([key, label]) =>
+                  h('button', {
+                    key,
+                    type: 'button',
+                    className: 'fr-view-menu-item' + (sortKey === key ? ' active' : ''),
+                    role: 'menuitem',
+                    onClick: () => {
+                      changeSort(key)
+                      setViewMenu(null)
+                    },
+                  }, translate(label) + (sortKey === key ? ' ' + (sortAscending ? '↑' : '↓') : '')),
+                ),
+              ),
+            )
+          : null,
         moreMenu
           ? h(
               'div',
@@ -2411,6 +2717,18 @@ window.__ModuleLoader__.load({
                   style: { left: moreMenu.left, top: moreMenu.top },
                   onMouseDown: (event) => event.stopPropagation(),
                 },
+                !isHome
+                  ? h('button', {
+                      type: 'button',
+                      className: 'fr-menu-item',
+                      role: 'menuitem',
+                      disabled: busy,
+                      onClick: () => {
+                        setMoreMenu(null)
+                        createFolder()
+                      },
+                    }, translate('files.newFolder'))
+                  : null,
                 !isHome
                   ? h('button', {
                       type: 'button',
