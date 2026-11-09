@@ -38,7 +38,9 @@ import {
   listDirectory,
   listTopFolders,
   openInFileManager,
+  revealInFileManager,
   renameEntry,
+  searchEntries,
   resolveInside,
   saveUpload,
 } from './lib/files.js'
@@ -388,12 +390,20 @@ export async function apply(ctx, config = {}) {
         }
         return sendJson(res, 200, { ok: true, deleted })
       }
+      if (route === `${ADMIN_API}/search`) {
+        if (method !== 'GET') return methodNotAllowed(res)
+        const relative = url.searchParams.get('path') || ''
+        const query = url.searchParams.get('q') || ''
+        const result = await searchEntries(state.saveDir, relative, query)
+        return sendJson(res, 200, { ok: true, ...result })
+      }
       if (route === `${ADMIN_API}/open`) {
         if (method !== 'POST') return methodNotAllowed(res)
         const body = await readJsonBody(req)
         const target = resolveInside(state.saveDir, typeof body.path === 'string' ? body.path : '')
-        const opened = openInFileManager(target)
-        return sendJson(res, 200, { ok: true, opened })
+        const reveal = body.reveal === true
+        const opened = reveal ? revealInFileManager(target) : openInFileManager(target)
+        return sendJson(res, 200, { ok: true, opened, revealed: reveal })
       }
       if (route === `${ADMIN_API}/raw`) {
         if (method !== 'GET') return methodNotAllowed(res)

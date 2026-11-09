@@ -92,14 +92,13 @@ try {
   check('phone page script is ES5', !/\basync\b|\bawait\b|=>|\bconst\b|\blet\b/.test(scriptBody))
 
   check(
-    'wechat page shows only the file entry',
-    wechatText.includes('id="files"') && !wechatText.includes('id="photos"') && !wechatText.includes('id="compat"'),
+    'wechat page shows album and file entries',
+    wechatText.includes('id="photos"') && wechatText.includes('id="files"') && !wechatText.includes('id="camera"') && !wechatText.includes('id="compat"'),
   )
-  check('wechat page explains browser/camera', wechatText.includes('picker-note') && wechatText.includes('在浏览器中打开'))
   check('entries have no subtitle text', !wechatText.includes('picker-desc') && !pageText.includes('picker-desc'))
-  check('picker tiles are labels (click forwards to input)', (wechatText.match(/<label class="picker"/g) || []).length === 1)
+  check('picker tiles are labels (click forwards to input)', (wechatText.match(/<label class="picker"/g) || []).length === 2)
   check('picker inputs overlay the tiles', wechatText.includes('class="picker-input"') && wechatText.includes('id="files"'))
-  check('file input declares wildcard accept', wechatText.includes('accept="*/*"'))
+  check('file input declares document accept', wechatText.includes('application/pdf') && wechatText.includes('.docx'))
   check('browser file entry declares document accept', pageText.includes('application/pdf') && pageText.includes('.docx'))
   check('phone page pinned to light theme', !wechatText.includes('prefers-color-scheme') && wechatText.includes('color-scheme: light'))
   check('save target starts hidden and uses a bottom sheet', wechatText.includes('id="target-card" hidden') && wechatText.includes('id="dir-sheet"') && !wechatText.includes('<select id="dir"'))
@@ -110,8 +109,8 @@ try {
   check('save target nests first-level dirs and collapses deeper ones', wechatText.includes('dir-toggle') && wechatText.includes('childGroup.hidden = true') && wechatText.includes('dir-toggle-slot'))
   check('save target has no root option', !wechatText.includes('value=""') && wechatText.includes('DEFAULT_DIR_NAME'))
   check(
-    'normal page shows photo and file entries',
-    pageText.includes('accept="image/*,video/*"') && pageText.includes('id="files"') && pageText.includes('id="photos"') && !pageText.includes('id="compat"'),
+    'normal page shows album and file entries',
+    pageText.includes('accept="image/*,video/*"') && pageText.includes('id="files"') && pageText.includes('id="photos"') && !pageText.includes('id="camera"') && !pageText.includes('id="compat"'),
   )
   check('wechat top notice replaced by inline note', !wechatText.includes('你正在微信内置浏览器中打开'))
 
@@ -216,6 +215,9 @@ try {
   const rootListingResponse = await fetch(`${adminBase}/shuttle/api/list?path=`)
   const rootListing = await rootListingResponse.json()
   check('admin root contains folders but no default files', rootListingResponse.ok && rootListing.files.length === 0 && rootListing.dirs.some((item) => item.path === '默认'))
+  const searchResponse = await fetch(`${adminBase}/shuttle/api/search?path=${encodeURIComponent('默认')}&q=${encodeURIComponent('hello')}`)
+  const searchData = await searchResponse.json()
+  check('admin search finds files recursively', searchResponse.ok && searchData.ok === true && searchData.files.some((item) => item.path === '默认/hello world.txt'))
   await writeFile(path.join(tmp, 'thumb.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]))
   const rawResponse = await fetch(`${adminBase}/shuttle/api/raw?path=thumb.png`)
   check('admin raw returns image content type', rawResponse.ok && rawResponse.headers.get('content-type') === 'image/png')
