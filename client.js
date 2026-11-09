@@ -84,6 +84,10 @@ window.__ModuleLoader__.load({
       'files.searchTimeHeading': '按时间查找',
       'files.searchResults': '搜索到结果（{n} 项）',
       'files.searchHint': '输入文件名，或选择类型、目录、时间开始搜索',
+      'files.scopeCurrent': '当前目录：{path}',
+      'files.scopeAll': '全部保存位置',
+      'files.searchLoading': '正在搜索…',
+      'files.searchError': '搜索失败：{message}',
       'files.viewMode': '显示方式',
       'files.viewGrid': '宫格',
       'files.viewList': '列表',
@@ -230,6 +234,10 @@ window.__ModuleLoader__.load({
       'files.searchTimeHeading': 'Search by time',
       'files.searchResults': 'Search results ({n})',
       'files.searchHint': 'Type a file name, or choose a type, folder, or time to start',
+      'files.scopeCurrent': 'Current folder: {path}',
+      'files.scopeAll': 'All saved files',
+      'files.searchLoading': 'Searching…',
+      'files.searchError': 'Search failed: {message}',
       'files.viewMode': 'View',
       'files.viewGrid': 'Grid',
       'files.viewList': 'List',
@@ -603,6 +611,7 @@ window.__ModuleLoader__.load({
 .fr-search-clear { flex: none; width: 26px; height: 26px; border: none; border-radius: 50%; background: transparent; color: var(--dsw-alias-label-secondary); font-size: 17px; line-height: 1; cursor: pointer; }
 .fr-search-clear:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
 .fr-search-body { flex: 1; min-height: 0; overflow: auto; padding: 18px 20px 20px; }
+.fr-search-scope { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
 .fr-search-heading { margin: 0 0 10px; color: var(--dsw-alias-label-secondary); font-size: 12px; font-weight: 600; }
 .fr-search-heading:not(:first-child) { margin-top: 20px; }
 .fr-search-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
@@ -989,6 +998,8 @@ window.__ModuleLoader__.load({
       const [moreMenu, setMoreMenu] = React.useState(null)
       const [viewMenu, setViewMenu] = React.useState(null)
       const [searchOpen, setSearchOpen] = React.useState(false)
+      const [searchScope, setSearchScope] = React.useState('current')
+      const [searchRemote, setSearchRemote] = React.useState({ loading: false, error: '', dirs: [], files: [], truncated: false })
       const [recentViewMode, setRecentViewMode] = React.useState(() => {
         try { return localStorage.getItem('shuttle.recentView') === 'list' ? 'list' : 'grid' } catch { return 'grid' }
       })
@@ -1007,6 +1018,7 @@ window.__ModuleLoader__.load({
       const pathRef = React.useRef('')
       const modeRef = React.useRef('home')
       const breadcrumbScrollRef = React.useRef(null)
+      const searchSeqRef = React.useRef(0)
       const lastBrowsePathRef = React.useRef((() => {
         try { return localStorage.getItem('shuttle.lastBrowsePath') || '' } catch { return '' }
       })())
@@ -1535,6 +1547,35 @@ window.__ModuleLoader__.load({
 
       const searchNeedle = search.trim().toLowerCase()
       const matchesSearch = (item) => !searchNeedle || String(item.name || '').toLowerCase().includes(searchNeedle)
+
+      React.useEffect(() => {
+        const hasQuery = Boolean(search.trim()) || typeFilter !== 'all' || timeFilter !== 'all'
+        if (!searchOpen || isHome || !hasQuery) {
+          searchSeqRef.current += 1
+          setSearchRemote({ loading: false, error: '', dirs: [], files: [], truncated: false })
+          return undefined
+        }
+        const seq = ++searchSeqRef.current
+        const root = searchScope === 'all' ? '' : pathRef.current
+        setSearchRemote((previous) => ({ ...previous, loading: true, error: '' }))
+        request('/search?path=' + encodeURIComponent(root) + '&q=' + encodeURIComponent(search))
+          .then((data) => {
+            if (seq !== searchSeqRef.current) return
+            setSearchRemote({
+              loading: false,
+              error: '',
+              dirs: Array.isArray(data.dirs) ? data.dirs : [],
+              files: Array.isArray(data.files) ? data.files : [],
+              truncated: Boolean(data.truncated),
+            })
+          })
+          .catch((error) => {
+            if (seq !== searchSeqRef.current) return
+            setSearchRemote({ loading: false, error: error.message, dirs: [], files: [], truncated: false })
+          })
+        return () => { /* sequence guard handles stale responses */ }
+      }, [searchOpen, isHome, searchScope, currentPath, search])
+
       const folderFilterOptions = Array.from(new Set(receivedItems.map((item) => item.sourceDir).filter(Boolean))).sort((left, right) => left.localeCompare(right, 'zh-Hans-CN'))
       const matchesFolderFilter = (item) => folderFilter === 'all' || !item.sourceDir || item.sourceDir === folderFilter || item.sourceDir.startsWith(folderFilter + '/')
       const typeFilterOptions = [
@@ -1720,6 +1761,7 @@ window.__ModuleLoader__.load({
       const openSearch = () => {
         setViewMenu(null)
         setMoreMenu(null)
+        setSearchScope('current')
         setSearchOpen(true)
       }
 
@@ -2406,6 +2448,7 @@ window.__ModuleLoader__.load({
         ),
       )
 
+      const searchRootLabel = state && state.saveDirName ? state.saveDirName : 'FileShuttle'
       const searchTypeOptions = [
         ['all', 'files.typeAll'],
         ['document', 'files.typeDocument'],
@@ -2424,7 +2467,7 @@ window.__ModuleLoader__.load({
           searchDirectoryPaths.add(parts.slice(0, index).join('/'))
         }
       }
-      const searchDirs = Array.from(searchDirectoryPaths)
+      const recentSearchDirs = Array.from(searchDirectoryPaths)
         .filter((directory) => !searchNeedle || directory.toLowerCase().includes(searchNeedle))
         .filter((directory) => folderFilter === 'all' || directory === folderFilter || directory.startsWith(folderFilter + '/'))
         .filter((directory) => typeFilter === 'all' || typeFilter === 'folder')
@@ -2435,11 +2478,20 @@ window.__ModuleLoader__.load({
           mtime: 0,
           childCount: 0,
         }))
-      const searchFiles = receivedItems
+      const recentSearchFiles = receivedItems
         .filter((item) => matchesSearch(item) && matchesFolderFilter(item) && matchesTypeFilter(item) && matchesTimeFilter(item))
         .slice()
         .sort(compareEntries)
+      const remoteSearchDirs = searchRemote.dirs
+        .filter((item) => matchesSearch(item) && matchesTypeFilter(item) && matchesTimeFilter(item))
+      const remoteSearchFiles = searchRemote.files
+        .filter((item) => matchesSearch(item) && matchesTypeFilter(item) && matchesTimeFilter(item))
+        .slice()
+        .sort(compareEntries)
+      const searchDirs = isHome ? recentSearchDirs : remoteSearchDirs
+      const searchFiles = isHome ? recentSearchFiles : remoteSearchFiles
       const searchResultCount = searchDirs.length + searchFiles.length
+      const searchLoading = !isHome && searchRemote.loading
       const hasSearchCriteria = Boolean(searchNeedle) || typeFilter !== 'all' || folderFilter !== 'all' || timeFilter !== 'all'
       const searchChip = (active, label, onClick, key) => h('button', {
         key,
@@ -2467,9 +2519,15 @@ window.__ModuleLoader__.load({
           ),
         ),
         h('div', { className: 'fr-search-body' },
+          !isHome
+            ? h('div', { className: 'fr-search-scope' },
+                searchChip(searchScope === 'current', translate('files.scopeCurrent').replace('{path}', currentPath || searchRootLabel), () => setSearchScope('current'), 'scope-current'),
+                searchChip(searchScope === 'all', translate('files.scopeAll'), () => setSearchScope('all'), 'scope-all'),
+              )
+            : null,
           h('h3', { className: 'fr-search-heading' }, translate('files.searchTypeHeading')),
           h('div', { className: 'fr-search-chips' }, searchTypeOptions.map(([value, key]) => searchChip(typeFilter === value, translate(key), () => setTypeFilter(value), value))),
-          folderFilterOptions.length > 1
+          isHome && folderFilterOptions.length > 1
             ? [
                 h('h3', { className: 'fr-search-heading', key: 'dir-heading' }, translate('files.searchFolderHeading')),
                 h('div', { className: 'fr-search-chips', key: 'dir-chips' },
@@ -2486,15 +2544,19 @@ window.__ModuleLoader__.load({
             searchChip(timeFilter === '30d', translate('files.time30d'), () => setTimeFilter('30d'), 'time-30d'),
           ),
           hasSearchCriteria
-            ? h('div', { className: 'fr-search-results-head' }, translate('files.searchResults').replace('{n}', String(searchResultCount)))
+            ? (searchLoading
+                ? h('div', { className: 'fr-search-hint' }, translate('files.searchLoading'))
+                : searchRemote.error
+                  ? h('div', { className: 'fr-search-hint' }, translate('files.searchError').replace('{message}', searchRemote.error))
+                  : h('div', { className: 'fr-search-results-head' }, translate('files.searchResults').replace('{n}', String(searchResultCount))))
             : h('div', { className: 'fr-search-hint' }, translate('files.searchHint')),
-          hasSearchCriteria && searchResultCount === 0
+          hasSearchCriteria && !searchLoading && !searchRemote.error && searchResultCount === 0
             ? h('div', { className: 'fr-library-empty fr-search-empty' },
                 h('span', { className: 'fr-empty-glyph', 'aria-hidden': true }, h(FileTypeIcon, { name: 'file', kind: 'file', size: 38 })),
                 h('strong', null, translate('files.noMatch')),
               )
             : null,
-          hasSearchCriteria && searchResultCount > 0
+          hasSearchCriteria && !searchLoading && !searchRemote.error && searchResultCount > 0
             ? h('div', { className: 'fr-browse-list fr-search-results' },
                 searchDirs.map(renderBrowseFolder),
                 searchFiles.map(renderBrowseFile),

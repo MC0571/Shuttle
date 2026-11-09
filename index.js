@@ -40,6 +40,7 @@ import {
   openInFileManager,
   revealInFileManager,
   renameEntry,
+  searchEntries,
   resolveInside,
   saveUpload,
 } from './lib/files.js'
@@ -388,6 +389,13 @@ export async function apply(ctx, config = {}) {
           try { persistReceipts(state.saveDir, state.received) } catch { /* 记录失败不影响删除 */ }
         }
         return sendJson(res, 200, { ok: true, deleted })
+      }
+      if (route === `${ADMIN_API}/search`) {
+        if (method !== 'GET') return methodNotAllowed(res)
+        const relative = url.searchParams.get('path') || ''
+        const query = url.searchParams.get('q') || ''
+        const result = await searchEntries(state.saveDir, relative, query)
+        return sendJson(res, 200, { ok: true, ...result })
       }
       if (route === `${ADMIN_API}/open`) {
         if (method !== 'POST') return methodNotAllowed(res)
