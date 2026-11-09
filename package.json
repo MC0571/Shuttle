@@ -1,6 +1,6 @@
 {
   "name": "shuttle-dsh",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": false,
   "type": "module",
   "description": "Shuttle (文件穿梭机) for DeepSeek Harness: scan a QR code with your phone and send photos/files to this computer over the local network, with file and folder management.",

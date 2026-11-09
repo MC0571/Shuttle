@@ -92,12 +92,11 @@ try {
   check('phone page script is ES5', !/\basync\b|\bawait\b|=>|\bconst\b|\blet\b/.test(scriptBody))
 
   check(
-    'wechat page shows album, camera and file entries',
-    wechatText.includes('id="photos"') && wechatText.includes('id="camera"') && wechatText.includes('id="files"') && !wechatText.includes('id="compat"'),
+    'wechat page shows album and file entries',
+    wechatText.includes('id="photos"') && wechatText.includes('id="files"') && !wechatText.includes('id="camera"') && !wechatText.includes('id="compat"'),
   )
-  check('camera input opens the rear camera', wechatText.includes('id="camera"') && wechatText.includes('capture="environment"'))
   check('entries have no subtitle text', !wechatText.includes('picker-desc') && !pageText.includes('picker-desc'))
-  check('picker tiles are labels (click forwards to input)', (wechatText.match(/<label class="picker"/g) || []).length === 3)
+  check('picker tiles are labels (click forwards to input)', (wechatText.match(/<label class="picker"/g) || []).length === 2)
   check('picker inputs overlay the tiles', wechatText.includes('class="picker-input"') && wechatText.includes('id="files"'))
   check('file input declares document accept', wechatText.includes('application/pdf') && wechatText.includes('.docx'))
   check('browser file entry declares document accept', pageText.includes('application/pdf') && pageText.includes('.docx'))
@@ -110,8 +109,8 @@ try {
   check('save target nests first-level dirs and collapses deeper ones', wechatText.includes('dir-toggle') && wechatText.includes('childGroup.hidden = true') && wechatText.includes('dir-toggle-slot'))
   check('save target has no root option', !wechatText.includes('value=""') && wechatText.includes('DEFAULT_DIR_NAME'))
   check(
-    'normal page shows album, camera and file entries',
-    pageText.includes('accept="image/*,video/*"') && pageText.includes('id="files"') && pageText.includes('id="photos"') && pageText.includes('id="camera"') && !pageText.includes('id="compat"'),
+    'normal page shows album and file entries',
+    pageText.includes('accept="image/*,video/*"') && pageText.includes('id="files"') && pageText.includes('id="photos"') && !pageText.includes('id="camera"') && !pageText.includes('id="compat"'),
   )
   check('wechat top notice replaced by inline note', !wechatText.includes('你正在微信内置浏览器中打开'))
 
