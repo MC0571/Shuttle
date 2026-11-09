@@ -2,6 +2,11 @@
 
 遵循 [Semantic Versioning](https://semver.org/)；每个标题对应一个 Git tag `v<version>`。
 
+## [0.5.1] - 2026-11-09
+
+### Documentation
+- 更新 README 产品截图：替换为最新桌面端与手机端界面，并同步功能说明。
+
 ## [0.5.0] - 2026-11-09
 
 ### Changed
