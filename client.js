@@ -1356,7 +1356,7 @@ window.__ModuleLoader__.load({
 
       const revealItem = (item) => {
         runRowAction(item, async () => {
-          await request('/open', postJson({ path: item.path }))
+          await request('/open', postJson({ path: item.path, reveal: true }))
         })
       }
 

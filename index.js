@@ -38,6 +38,7 @@ import {
   listDirectory,
   listTopFolders,
   openInFileManager,
+  revealInFileManager,
   renameEntry,
   resolveInside,
   saveUpload,
@@ -392,8 +393,9 @@ export async function apply(ctx, config = {}) {
         if (method !== 'POST') return methodNotAllowed(res)
         const body = await readJsonBody(req)
         const target = resolveInside(state.saveDir, typeof body.path === 'string' ? body.path : '')
-        const opened = openInFileManager(target)
-        return sendJson(res, 200, { ok: true, opened })
+        const reveal = body.reveal === true
+        const opened = reveal ? revealInFileManager(target) : openInFileManager(target)
+        return sendJson(res, 200, { ok: true, opened, revealed: reveal })
       }
       if (route === `${ADMIN_API}/raw`) {
         if (method !== 'GET') return methodNotAllowed(res)
